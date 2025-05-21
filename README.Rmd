@@ -18,6 +18,8 @@ knitr::opts_chunk$set(
 
 ## R-Universe
 
+*This doesn't work yet!*
+
 ### Binary
 
 ```{r, eval=FALSE}
@@ -26,15 +28,11 @@ install.packages('nimbleJSextras', repos='https://dsjohnson.r-universe.dev')
 
 ### Source
 
-*You will need a C++ compiler for R*
-
 ```{r, eval=FALSE}
 install.packages('nimbleJSextras', type='source', repos='https://dsjohnson.r-universe.dev')
 ```
 
 ## github
-
-*You will need a C++ compiler for R*
 
 ```{r, eval=FALSE}
 remotes::install_github('dsjohnson/nimbleJSextras')

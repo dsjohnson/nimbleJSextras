@@ -4,6 +4,8 @@
 
 ## R-Universe
 
+*This doesn’t work yet!*
+
 ### Binary
 
 ``` r
@@ -12,15 +14,11 @@ install.packages('nimbleJSextras', repos='https://dsjohnson.r-universe.dev')
 
 ### Source
 
-*You will need a C++ compiler for R*
-
 ``` r
 install.packages('nimbleJSextras', type='source', repos='https://dsjohnson.r-universe.dev')
 ```
 
 ## github
-
-*You will need a C++ compiler for R*
 
 ``` r
 remotes::install_github('dsjohnson/nimbleJSextras')
