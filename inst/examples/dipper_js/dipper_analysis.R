@@ -6,7 +6,7 @@ library(tidyverse)
 library(coda)
 library(here)
 
-local_wd <- file.path(here(), "dipper_js")
+local_wd <- file.path(here(), "inst", "examples", "dipper_js")
 setwd(local_wd)
 
 #'------------------------------------------------------------------------------
@@ -14,7 +14,7 @@ setwd(local_wd)
 #' -----------------------------------------------------------------------------
 data("dipper")
 #' Convert capture histories to a matrix
-x <- strsplit(dipper$ch, "") %>% lapply(.,as.numeric) %>% do.call(rbind,.) 
+x <- strsplit(dipper$ch, "") %>% lapply(.,as.numeric) %>% do.call(rbind,.)
 #' Observed states: 1 = not captured, 2 = captured
 x <- x+1
 
@@ -22,7 +22,7 @@ x <- x+1
 #' -----------------------------------------------------------------------------
 #' Load and compile model code
 #' -----------------------------------------------------------------------------
-source("js_nimble_model.R")
+source("dipper_model.R")
 
 js_model <- nimbleModel(
   code = js_code,
@@ -32,9 +32,12 @@ js_model <- nimbleModel(
     beta=rep(1/7,7), p=c(NA,rep(0.5,5),NA), phi = rep(0.5,6), lambda=1.1*nrow(x)
     )
 )
-
 c_js_model <- compileNimble(js_model)
-js_mcmc <- buildMCMC(js_model, monitors=c("beta","phi","p","lambda","nu","pstar","Nsuper","Nu","Bu","Su","alive", "Nd", "N","Np"))
+
+js_mcmc <- buildMCMC(
+  js_model,
+  monitors=c("beta","phi","p","lambda","nu","pstar","Nsuper", "Nd", "N")
+  )
 c_js_mcmc <- compileNimble(js_mcmc)
 
 samples <- runMCMC(c_js_mcmc, niter = 25000, nburnin = 5000, nchains = 1, thin2=1, thin=1)
@@ -47,9 +50,9 @@ summary(mcmc(samples_list$p))
 summary(mcmc(samples_list$N))
 summary(mcmc(samples_list$Np))
 
-Ndf <- data.frame(year = 1:ncol(y), est=colMeans(samples_list$N), hpd = HPDinterval(mcmc(samples_list$N)))
+Ndf <- data.frame(year = 1:ncol(x), est=apply(samples_list$N, 2, median), hpd = HPDinterval(mcmc(samples_list$N)))
 
-ggplot(Ndf) + geom_point(aes(x=year, y=est), size=3) + 
+ggplot(Ndf) + geom_point(aes(x=year, y=est), size=3) +
   geom_errorbar(aes(x=year, ymin=hpd.lower, ymax=hpd.upper), width=0.2) +
   geom_path(aes(x=year, y=est)) + ylab("Abundance") + xlab("Year")
 

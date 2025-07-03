@@ -7,7 +7,7 @@ require(nimbleEcology)
 require(nimbleJSextras)
 
 js_code <- nimbleCode({
-  
+
   #' ---------------------------------------------------------------------------
   #' Unconditional detection probability
   #' ---------------------------------------------------------------------------
@@ -18,29 +18,30 @@ js_code <- nimbleCode({
     len=K,
     checkRowSums = 1
   )
-  
+
   #' ---------------------------------------------------------------------------
   #' HMM likelihood for observed individuals
   #' ---------------------------------------------------------------------------
   for(i in 1:nobs){
     x[i, 1:K] ~ dJS_Do(
-      init = pi[1:3], 
-      probObs = pmat[1:3, 1:2, 1:K], 
-      probTrans = Gamma[1:3, 1:3, 1:(K-1)], 
+      init = pi[1:3],
+      probObs = pmat[1:3, 1:2, 1:K],
+      probTrans = Gamma[1:3, 1:3, 1:(K-1)],
       len = K, pstar=pstar, checkRowSums = 1
-    ) 
+    )
   }
   n ~ dpois(lambda*pstar)
 
   #' ---------------------------------------------------------------------------
   #' Initial entry probability
   #' ---------------------------------------------------------------------------
-  pi[1] <- 1-beta[1]
-  pi[2] <- beta[1]
+
+  pi[1] <- 1-xi[1]
+  pi[2] <- xi[1]
   pi[3] <- 0
-  
+
   #' ---------------------------------------------------------------------------
-  #' Detection matrix 
+  #' Detection matrix
   #' ---------------------------------------------------------------------------
   for(t in 1:K){
     pmat[1,1,t] <- 1
@@ -50,7 +51,7 @@ js_code <- nimbleCode({
     pmat[3,1,t] <- 1
     pmat[3,2,t] <- 0
   }
-  
+
   for(t in 1:K){
     p[t] ~ dunif(0,1)
   }
@@ -62,7 +63,7 @@ js_code <- nimbleCode({
   # }
   # p[1] <- 1
   # p[K] <- 1
-  
+
   #' ---------------------------------------------------------------------------
   #' Transition probability matrix
   #' ---------------------------------------------------------------------------
@@ -74,51 +75,52 @@ js_code <- nimbleCode({
     Gamma[2,2,t] <- phi[t]
     Gamma[2,3,t] <- 1 - phi[t]
     Gamma[3,1,t] <- 0
-    Gamma[3,2,t] <- 0 
+    Gamma[3,2,t] <- 0
     Gamma[3,3,t] <- 1
-    
-    xi[t] <- beta[t+1]/(1-sum(beta[1:t]))
-    phi[t] ~ dunif(0,1) 
+
+    phi[t] ~ dunif(0,1)
   }
-  
-  beta[1:K] ~ ddirch(mu_beta[1:K])
+
+  #' recruitment model
+  for(t in 1:(K)){
+    rho[t] ~ dunif(0,1)
+    xi[t] <- rho[t]/(1-prod(1-rho[t:K]))
+  }
+  beta[1] <- xi[1]
+  for(t in 2:K){
+    beta[t] <- (rho[t] * prod(1-rho[1:(t-1)]))/((1-prod(1-rho[1:K])))
+  }
+  # rho[K] <- rho[K-1]
+  # xi[K] <- 1
+
+  #' lambda prior
   lambda ~ dgamma(1.0e-6, 1.0e-6)
-  
+
   #' ---------------------------------------------------------------------------
   #' Code below is for the posterior predicted abundance
   #' ---------------------------------------------------------------------------
-  
+
   nu ~ dpois(lambda*(1-pstar))
   Nsuper <- n+nu
-  Bu[1:K] ~ dmulti(beta[1:K], nu)
-  
-  Su[1] <- 0
-  Nu[1] <- Bu[1]
+  nu_t[1:3,1] ~ dmulti(pi[1:3], nu)
+  Nu[1] <- nu_t[2,1]
   for(t in 2:K){
-    Su[t] ~ dbinom(phi[t-1], Nu[t-1])
-    Nu[t] <- Bu[t] + Su[t]
+    for(l in 1:3){
+      Tu[l,1:3,t-1] ~ dmulti(Gamma[l,1:3,t-1], nu_t[l,t-1])
+      nu_t[l,t] <- sum(Tu[1:3,l,t-1])
+    }
+    Nu[t] <-  nu_t[2,t]
   }
-  
+
   for(i in 1:nobs){
-    state[i,1:K] <- sample_state_Do(x[i,1:K], init = pi[1:3], 
-                                    probObs = pmat[1:3, 1:2, 1:K], 
+    state[i,1:K] <- sample_state_Do(x[i,1:K], init = pi[1:3],
+                                    probObs = pmat[1:3, 1:2, 1:K],
                                     probTrans = Gamma[1:3, 1:3, 1:(K-1)])
     alive[i,1:K] <- state[i,1:K]==2
   }
-  
+
   for(t in 1:K){
     Nd[t] <- sum(alive[1:nobs, t])
     N[t] <- Nd[t] + Nu[t]
   }
-  
-  Bp[1:K] ~ dmulti(beta[1:K], Nsuper)
-  Sp[1] <- 0
-  Np[1] <- Bp[1]
-  for(t in 2:K){
-    Sp[t] ~ dbinom(phi[t-1], Np[t-1])
-    Np[t] <- Bp[t] + Sp[t]
-  }
-  
-  
-  
 })

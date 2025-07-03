@@ -1,7 +1,7 @@
 
 #' @export
 #' @import nimble nimbleEcology
-sample_state <- nimble::nimbleFunction(
+sample_state_det <- nimble::nimbleFunction(
   run = function(x = double(1),         # Observation sequence
                  init = double(1),        # Initial state probabilities
                  probObs = double(2),     # Emission probabilities
@@ -48,7 +48,7 @@ sample_state <- nimble::nimbleFunction(
 
 #' @export
 #' @import nimble nimbleEcology
-sample_state_o <- nimble::nimbleFunction(
+sample_state_det_o <- nimble::nimbleFunction(
   run = function(x = double(1),         # Observation sequence
                  init = double(1),        # Initial state probabilities
                  probObs = double(3),     # Emission probabilities
@@ -93,7 +93,7 @@ sample_state_o <- nimble::nimbleFunction(
 
 #' @export
 #' @import nimble nimbleEcology
-sample_state_D <- nimble::nimbleFunction(
+sample_state_det_D <- nimble::nimbleFunction(
   run = function(x = double(1),         # Observation sequence
                  init = double(1),        # Initial state probabilities
                  probObs = double(2),     # Emission probabilities
@@ -139,7 +139,7 @@ sample_state_D <- nimble::nimbleFunction(
 
 #' @export
 #' @import nimble nimbleEcology
-sample_state_Do <- nimble::nimbleFunction(
+sample_state_det_Do <- nimble::nimbleFunction(
   run = function(x = double(1),         # Observation sequence
                  init = double(1),        # Initial state probabilities
                  probObs = double(3),     # Emission probabilities
