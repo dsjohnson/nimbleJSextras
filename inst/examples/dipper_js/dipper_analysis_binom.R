@@ -15,19 +15,17 @@ setwd(local_wd)
 data("dipper")
 #' Convert capture histories to a matrix
 x <- strsplit(dipper$ch, "") %>% lapply(.,as.numeric) %>% do.call(rbind,.)
-#' Observed states: 1 = not captured, 2 = captured
-x <- x+1
 
 
 #' -----------------------------------------------------------------------------
 #' Load and compile model code
 #' -----------------------------------------------------------------------------
-source("dipper_model.R")
+source("dipper_model_binom.R")
 
 js_model <- nimbleModel(
   code = js_code,
   constants = list(K=ncol(x), mu_beta=rep(1, ncol(x)), nobs=nrow(x)),
-  data = list(x = x, n = nrow(x)),
+  data = list(x = x, n = nrow(x), ones=rep(1,ncol(x))),
   inits = list(
     beta=rep(1/7,7), p=c(NA,rep(0.5,5),NA), phi = rep(0.5,6), lambda=1.1*nrow(x)
     )
@@ -47,6 +45,7 @@ samples_list <- as.list(c_js_mcmc$mvSamples)
 summary(mcmc(samples_list$phi))
 summary(mcmc(samples_list$beta))
 summary(mcmc(samples_list$p))
+summary(mcmc(samples_list$N))
 summary(mcmc(samples_list$Nsuper))
 
 Ndf <- data.frame(year = 1:ncol(x), est=apply(samples_list$N, 2, median), hpd = HPDinterval(mcmc(samples_list$N)))

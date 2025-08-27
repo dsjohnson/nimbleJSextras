@@ -96,8 +96,9 @@ js_code <- nimbleCode({
   nu ~ dpois(lambda*(1-pstar))
   Nsuper <- n+nu
 
-  nu_t[1:3, 1:K] <- sample_state_undet_D(nu, pi[1:3], Gamma[1:3, 1:3, 1:(K-1)])
-
+  nu_t[1:3, 1:K] <-  sample_state_undet_Do(nu=nu, init=pi[1:3],
+                                           probTrans=Gamma[1:3, 1:3, 1:(K-1)],
+                                           probObs=pmat[1:3,1:3,1:K])
 
   for(i in 1:nobs){
     state[i,1:K] <- sample_state_det_Do(x[i,1:K], init = pi[1:3],

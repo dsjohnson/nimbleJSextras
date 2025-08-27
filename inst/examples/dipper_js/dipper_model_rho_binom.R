@@ -35,8 +35,9 @@ js_code <- nimbleCode({
   #' ---------------------------------------------------------------------------
   #' Initial entry probability
   #' ---------------------------------------------------------------------------
-  pi[1] <- 1-beta[1]
-  pi[2] <- beta[1]
+
+  pi[1] <- 1-xi[1]
+  pi[2] <- xi[1]
   pi[3] <- 0
 
   #' ---------------------------------------------------------------------------
@@ -51,18 +52,17 @@ js_code <- nimbleCode({
     pmat[3,2,t] <- 0
   }
 
-  # for(t in 1:K){
-  #   p[t] ~ dunif(0,1)
-  # }
-
+  for(t in 1:K){
+    p[t] ~ dunif(0,1)
+  }
   #' ---------------------------------------------------------------------------
   #' Use the code below for Royle & Dorazio (2008) parameterization
   #' ---------------------------------------------------------------------------
-  for(t in 2:(K-1)){
-    p[t] ~ dunif(0,1)
-  }
-  p[1] <- 1
-  p[K] <- 1
+  # for(t in 2:(K-1)){
+  #   p[t] ~ dunif(0,1)
+  # }
+  # p[1] <- 1
+  # p[K] <- 1
 
   #' ---------------------------------------------------------------------------
   #' Transition probability matrix
@@ -78,11 +78,22 @@ js_code <- nimbleCode({
     Gamma[3,2,t] <- 0
     Gamma[3,3,t] <- 1
 
-    xi[t] <- beta[t+1]/(1-sum(beta[1:t]))
     phi[t] ~ dunif(0,1)
   }
 
-  beta[1:K] ~ ddirch(mu_beta[1:K])
+  #' recruitment model
+  for(t in 1:(K)){
+    rho[t] ~ dunif(0,1)
+    xi[t] <- rho[t]/(1-prod(1-rho[t:K]))
+  }
+  beta[1] <- xi[1]
+  for(t in 2:K){
+    beta[t] <- (rho[t] * prod(1-rho[1:(t-1)]))/((1-prod(1-rho[1:K])))
+  }
+  # rho[K] <- rho[K-1]
+  # xi[K] <- 1
+
+  #' lambda prior
   lambda ~ dgamma(1.0e-6, 1.0e-6)
 
   #' ---------------------------------------------------------------------------
@@ -91,21 +102,25 @@ js_code <- nimbleCode({
 
   nu ~ dpois(lambda*(1-pstar))
   Nsuper <- n+nu
-
-  nu_t[1:3, 1:K] <- sample_state_undet_Do(nu, pi[1:3],
-                                          Gamma[1:3, 1:3, 1:(K-1)],
-                                          pmat[1:3,1:3,1:K])
+  nu_t[1:3,1] ~ dmulti(pi[1:3], nu)
+  Nu[1] <- nu_t[2,1]
+  for(t in 2:K){
+    for(l in 1:3){
+      Tu[l,1:3,t-1] ~ dmulti(Gamma[l,1:3,t-1], nu_t[l,t-1])
+      nu_t[l,t] <- sum(Tu[1:3,l,t-1])
+    }
+    Nu[t] <-  nu_t[2,t]
+  }
 
   for(i in 1:nobs){
-    det_state[i,1:K] <- sample_state_det_Do(x[i,1:K], init = pi[1:3],
+    state[i,1:K] <- sample_state_Do(x[i,1:K], init = pi[1:3],
                                     probObs = pmat[1:3, 1:2, 1:K],
                                     probTrans = Gamma[1:3, 1:3, 1:(K-1)])
+    alive[i,1:K] <- state[i,1:K]==2
   }
-  alive[1:nobs, 1:K] <- det_state[1:nobs,1:K]==2
 
   for(t in 1:K){
     Nd[t] <- sum(alive[1:nobs, t])
-    N[t] <- Nd[t] + nu_t[2,t]
-    # N[t] <- Nd[t] + Nu[t]
+    N[t] <- Nd[t] + Nu[t]
   }
 })

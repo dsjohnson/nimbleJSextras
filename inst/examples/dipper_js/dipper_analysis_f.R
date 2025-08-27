@@ -43,9 +43,9 @@ samples_list <- as.list(c_js_mcmc$mvSamples)
 
 
 summary(mcmc(samples_list$phi))
-summary(mcmc(samples_list$beta))
 summary(mcmc(samples_list$p))
 summary(mcmc(samples_list$N))
+summary(mcmc(samples_list$Nsuper))
 summary(mcmc(samples_list$f))
 
 Ndf <- data.frame(year = 1:ncol(x), est=colMeans(samples_list$N), hpd = HPDinterval(mcmc(samples_list$N)))

@@ -36,20 +36,17 @@ js_code <- nimbleCode({
   #' Initial entry probability
   #' ---------------------------------------------------------------------------
   # Resident
-  pi[1] <- 1-beta_R[1]
-  pi[2] <- beta_R[1]
+  pi[1] <- alpha[1]*(1-beta_R[1])
+  pi[2] <- alpha[1]*beta_R[1]
   pi[3] <- 0
-  pi[4] <- 0
   # Part-time
-  pi[5] <- 1-beta_P[1]
-  pi[6] <- beta_R[1]
-  pi[7] <- 0
-  pi[8] <- 0
+  pi[4] <- alpha[2]*(1-beta_P[1])
+  pi[5] <- alpha[2]*beta_R[1]
+  pi[6] <- 0
   # Transient
-  pi[9] <- 1-beta_T[1]
-  pi[10] <- beta_T[1]
-  pi[11] <- 0
-  pi[12] <- 0
+  pi[7] <- alpha[3]*(1-beta_T[1])
+  pi[8] <- alpha[3]*beta_T[1]
+  pi[9] <- 0
 
   #' ---------------------------------------------------------------------------
   #' Detection matrix
@@ -62,26 +59,20 @@ js_code <- nimbleCode({
     pmat[2,2,t] <- p_[t]
     pmat[3,1,t] <- 1
     pmat[3,2,t] <- 0
+    # Part-time resident
     pmat[4,1,t] <- 1
     pmat[4,2,t] <- 0
-    # Part-time resident
-    pmat[5,1,t] <- 1
-    pmat[5,2,t] <- 0
-    pmat[6,1,t] <- 1 - p[t]
-    pmat[6,2,t] <- p[t]
+    pmat[5,1,t] <- 1 - p[t]
+    pmat[5,2,t] <- p[t]
+    pmat[6,1,t] <- 1
+    pmat[6,2,t] <- 0
+    # Transient
     pmat[7,1,t] <- 1
     pmat[7,2,t] <- 0
-    pmat[8,1,t] <- 1
-    pmat[8,2,t] <- 0
-    # Transient
+    pmat[8,1,t] <- 1 - p_[t]
+    pmat[8,2,t] <- p[t]
     pmat[9,1,t] <- 1
     pmat[9,2,t] <- 0
-    pmat[10,1,t] <- 1 - p_[t]
-    pmat[10,2,t] <- p[t]
-    pmat[11,1,t] <- 1
-    pmat[11,2,t] <- 0
-    pmat[12,1,t] <- 1
-    pmat[12,2,t] <- 0
   }
 
   for(t in 1:K){
