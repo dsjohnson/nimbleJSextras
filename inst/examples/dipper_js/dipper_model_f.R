@@ -11,7 +11,7 @@ js_code <- nimbleCode({
   #' ---------------------------------------------------------------------------
   #' Unconditional detection probability
   #' ---------------------------------------------------------------------------
-  pstar <- pstar_Do(
+  pstar <- pstar_cat(
     init = pi[1:3],
     probObs = pmat[1:3, 1:2, 1:K],
     probTrans = Gamma[1:3, 1:3, 1:(K-1)],
@@ -23,7 +23,7 @@ js_code <- nimbleCode({
   #' HMM likelihood for observed individuals
   #' ---------------------------------------------------------------------------
   for(i in 1:nobs){
-    x[i, 1:K] ~ dJS_Do(
+    x[i, 1:K] ~ dJS_cat(
       init = pi[1:3],
       probObs = pmat[1:3, 1:2, 1:K],
       probTrans = Gamma[1:3, 1:3, 1:(K-1)],
@@ -53,8 +53,11 @@ js_code <- nimbleCode({
   }
 
   for(t in 1:K){
-    p[t] ~ dunif(0,1)
+    logit(p[t]) <- eps[t]
+    eps[t] ~ dnorm(mu_p, sd=sig_p)
   }
+  sig_p ~ dexp(1)
+  mu_p ~ dnorm(0,sd=1.5)
 
   #' ---------------------------------------------------------------------------
   #' Transition probability matrix
@@ -96,16 +99,15 @@ js_code <- nimbleCode({
   nu ~ dpois(lambda*(1-pstar))
   Nsuper <- n+nu
 
-  nu_t[1:3, 1:K] <-  sample_state_undet_Do(nu=nu, init=pi[1:3],
-                                           probTrans=Gamma[1:3, 1:3, 1:(K-1)],
-                                           probObs=pmat[1:3,1:3,1:K])
+  nu_t[1:3, 1:K] <- sample_undet_cat(n=nu, init=pi[1:3], probObs=pmat[1:3,1:2,1:K],
+                                     probTrans=Gamma[1:3, 1:3, 1:(K-1)], len=K)
 
   for(i in 1:nobs){
-    state[i,1:K] <- sample_state_det_Do(x[i,1:K], init = pi[1:3],
-                                    probObs = pmat[1:3, 1:2, 1:K],
-                                    probTrans = Gamma[1:3, 1:3, 1:(K-1)])
+    det_state[i,1:K] <- sample_det_cat(x=x[i,1:K], init=pi[1:3],
+                                       probObs=pmat[1:3, 1:2, 1:K],
+                                       probTrans=Gamma[1:3, 1:3, 1:(K-1)])
   }
-  alive[1:nobs,1:K] <- state[1:nobs,1:K]==2
+  alive[1:nobs,1:K] <- det_state[1:nobs,1:K]==2
 
   for(t in 1:K){
     Nd[t] <- sum(alive[1:nobs, t])

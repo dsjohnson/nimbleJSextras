@@ -31,11 +31,11 @@ js_model <- nimbleModel(
   inits = list(
     # f=rep(0.5,6),
     f_dot = 0.5,
-    p=rep(0.5,7), phi = rep(0.5,6), lambda=100)
+    mu_p=0, sig_p=1, phi = rep(0.5,6), lambda=100)
 )
 
 c_js_model <- compileNimble(js_model)
-js_mcmc <- buildMCMC(js_model, monitors=c("phi","p","lambda","nu","pstar","Nsuper", "Nd", "N","f"))
+js_mcmc <- buildMCMC(js_model, monitors=c("phi","p","mu_p","sig_p","lambda","nu","pstar","Nsuper", "Nd", "N","f"))
 c_js_mcmc <- compileNimble(js_mcmc)
 
 samples <- runMCMC(c_js_mcmc, niter = 25000, nburnin = 5000, nchains = 1, thin2=1, thin=1)
@@ -47,6 +47,8 @@ summary(mcmc(samples_list$p))
 summary(mcmc(samples_list$N))
 summary(mcmc(samples_list$Nsuper))
 summary(mcmc(samples_list$f))
+summary(mcmc(samples_list$mu_p))
+summary(mcmc(samples_list$sig_p))
 
 Ndf <- data.frame(year = 1:ncol(x), est=colMeans(samples_list$N), hpd = HPDinterval(mcmc(samples_list$N)))
 
