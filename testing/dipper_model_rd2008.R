@@ -35,9 +35,8 @@ js_code <- nimbleCode({
   #' ---------------------------------------------------------------------------
   #' Initial entry probability
   #' ---------------------------------------------------------------------------
-  xi[1] <- beta_tilde[1]/sum(beta_tilde[1:K])
-  pi[1] <- 1-xi[1]
-  pi[2] <- xi[1]
+  pi[1] <- 1-beta[1]
+  pi[2] <- beta[1]
   pi[3] <- 0
 
   #' ---------------------------------------------------------------------------
@@ -52,19 +51,21 @@ js_code <- nimbleCode({
     pmat[3,2,t] <- 0
   }
 
-  for(t in 1:K){
-    logit(p[t]) <- eps[t]
-    eps[t] ~ dnorm(mu_p, sd=sig_p)
+  #' ---------------------------------------------------------------------------
+  #' Use the code below for Royle & Dorazio (2008) parameterization
+  #' ---------------------------------------------------------------------------
+  for(t in 2:(K-1)){
+    p[t] ~ dunif(0,1)
   }
-  sig_p ~ dexp(1)
-  mu_p ~ dnorm(0,sd=1.5)
+  p[1] <- 1
+  p[K] <- 1
 
   #' ---------------------------------------------------------------------------
   #' Transition probability matrix
   #' ---------------------------------------------------------------------------
   for(t in 1:(K-1)){
-    Gamma[1,1,t] <- 1-xi[t+1]
-    Gamma[1,2,t] <- xi[t+1]
+    Gamma[1,1,t] <- 1-xi[t]
+    Gamma[1,2,t] <- xi[t]
     Gamma[1,3,t] <- 0
     Gamma[2,1,t] <- 0
     Gamma[2,2,t] <- phi[t]
@@ -73,23 +74,11 @@ js_code <- nimbleCode({
     Gamma[3,2,t] <- 0
     Gamma[3,3,t] <- 1
 
-    xi[t+1] <- beta_tilde[t+1]/sum(beta_tilde[(t+1):K])
+    xi[t] <- beta[t+1]/(1-sum(beta[1:t]))
     phi[t] ~ dunif(0,1)
   }
 
-  #' Constant per capita recruitment model
-  d[1] <- 1
-  beta_tilde[1] <- 1
-  # f_dot ~ dunif(0,5)
-  for(t in 2:K){
-    f[t-1] ~ dunif(0,5)
-    # f[t-1] <- f_dot
-    beta_tilde[t] <- d[t-1] * f[t-1]
-    d[t] <- d[t-1] * (phi[t-1]+f[t-1])
-  }
-  # beta[1:K] <- beta_tilde[1:K]/sum(beta_tilde[1:K])
-
-  #' lambda prior
+  beta[1:K] ~ ddirch(mu_beta[1:K])
   lambda ~ dgamma(1.0e-6, 1.0e-6)
 
   #' ---------------------------------------------------------------------------
@@ -104,10 +93,10 @@ js_code <- nimbleCode({
 
   for(i in 1:nobs){
     det_state[i,1:K] <- sample_det_cat(x=x[i,1:K], init=pi[1:3],
-                                       probObs=pmat[1:3, 1:2, 1:K],
-                                       probTrans=Gamma[1:3, 1:3, 1:(K-1)])
+                                    probObs=pmat[1:3, 1:2, 1:K],
+                                    probTrans=Gamma[1:3, 1:3, 1:(K-1)])
   }
-  alive[1:nobs,1:K] <- det_state[1:nobs,1:K]==2
+  alive[1:nobs, 1:K] <- det_state[1:nobs,1:K]==2
 
   for(t in 1:K){
     Nd[t] <- sum(alive[1:nobs, t])

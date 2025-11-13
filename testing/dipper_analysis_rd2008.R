@@ -5,6 +5,7 @@ library(nimbleJSextras)
 library(tidyverse)
 library(coda)
 library(here)
+library()
 
 local_wd <- file.path(here(), "inst", "examples", "dipper_js")
 setwd(local_wd)
@@ -22,35 +23,47 @@ x <- x+1
 #' -----------------------------------------------------------------------------
 #' Load and compile model code
 #' -----------------------------------------------------------------------------
-source("dipper_model_f.R")
+source("dipper_model_rd2008.R")
 
 js_model <- nimbleModel(
   code = js_code,
-  constants = list(K=ncol(x), nobs=nrow(x)),
+  constants = list(K=ncol(x), mu_beta=rep(1, ncol(x)), nobs=nrow(x)),
   data = list(x = x, n = nrow(x)),
   inits = list(
-    # f=rep(0.5,6),
-    f_dot = 0.5,
-    mu_p=0, sig_p=1, phi = rep(0.5,6), lambda=100)
+    beta=rep(1/7,7), p=c(NA,rep(0.5,5),NA), phi = rep(0.5,6), lambda=1.1*nrow(x)
+    )
 )
-
 c_js_model <- compileNimble(js_model)
-js_mcmc <- buildMCMC(js_model, monitors=c("phi","p","mu_p","sig_p","lambda","nu","pstar","Nsuper", "Nd", "N","f"))
+
+js_mcmc <- buildMCMC(
+  js_model,
+  monitors=c("beta","phi","p","lambda","nu","Nsuper", "Nd", "N")
+  )
 c_js_mcmc <- compileNimble(js_mcmc)
 
-samples <- runMCMC(c_js_mcmc, niter = 25000, nburnin = 5000, nchains = 1, thin2=1, thin=1)
+#' -----------------------------------------------------------------------------
+#' Run MCMC
+#' -----------------------------------------------------------------------------
+
+samples <- runMCMC(c_js_mcmc, niter = 25000, nburnin = 5000,
+                   nchains = 1, thin2=1, thin=1)
 samples_list <- as.list(c_js_mcmc$mvSamples)
 
 
 summary(mcmc(samples_list$phi))
+summary(mcmc(samples_list$beta))
 summary(mcmc(samples_list$p))
-summary(mcmc(samples_list$N))
 summary(mcmc(samples_list$Nsuper))
-summary(mcmc(samples_list$f))
-summary(mcmc(samples_list$mu_p))
-summary(mcmc(samples_list$sig_p))
 
-Ndf <- data.frame(year = 1:ncol(x), est=colMeans(samples_list$N), hpd = HPDinterval(mcmc(samples_list$N)))
+effectiveSize(mcmc(samples_list$phi))/20000
+effectiveSize(mcmc(samples_list$beta))/20000
+effectiveSize(mcmc(samples_list$p))/20000
+effectiveSize(mcmc(samples_list$Nsuper))/20000
+
+
+Ndf <- data.frame(year = 1:ncol(x), est=apply(samples_list$N, 2, median),
+                  hpd = HPDinterval(mcmc(samples_list$N)))
+Ndf <- Ndf[2:6,]
 
 ggplot(Ndf) + geom_point(aes(x=year, y=est), size=3) +
   geom_errorbar(aes(x=year, ymin=hpd.lower, ymax=hpd.upper), width=0.2) +

@@ -1,6 +1,6 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
-^old_code$
+^testing$
 ^README\.*$
 ^README\.md$
 ^README\.Rmd$
