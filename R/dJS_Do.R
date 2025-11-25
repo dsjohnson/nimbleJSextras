@@ -75,8 +75,8 @@ dJS_binom <- nimble::nimbleFunction(
                  prob = double(2),
                  size = double(1),
                  probTrans = double(3),
-                 len = integer(),
                  pstar = double(0, default=-1),
+                 len = integer(default=0),
                  log = integer(0, default = 0)) {
     len <- length(x)
     du <- dDHMMo_binom(x=x, init=init, prob=prob, size=size, probTrans=probTrans, len=len, log=1)
@@ -100,8 +100,8 @@ rJS_binom <- nimble::nimbleFunction(
                  prob = double(2),
                  size = double(1),
                  probTrans = double(3),
-                 len = integer(),
                  pstar = double(0, default=-1),
+                 len = integer(),
                  log = integer(0, default = 0)) {
     ind <- 0
     b <- 0

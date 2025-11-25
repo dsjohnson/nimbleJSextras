@@ -6,7 +6,7 @@
 Binomial addition
 -----------------------------------------------------------------------------}
 \usage{
-dJS_binom(x, init, prob, size, probTrans, len, pstar = -1, log = 0)
+dJS_binom(x, init, prob, size, probTrans, pstar = -1, len = 0, log = 0)
 }
 \description{
 -----------------------------------------------------------------------------

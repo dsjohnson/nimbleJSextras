@@ -8,10 +8,31 @@ require(nimbleJSextras)
 
 js_code <- nimbleCode({
 
+  for(t in 1:K){
+    logit_p[t] ~ dnorm(mu_p, sd=sig_p)
+    p[t] <- expit(logit_p[t])
+    logit_rho[t] ~ dnorm(mu_rho, sd=sig_rho)
+    rho[t] <- expit(logit_rho[t])
+  }
+  for(t in 1:(K-1)){
+    logit_phi[t] ~ dnorm(mu_phi, sd=sig_phi)
+    phi[t] <- expit(logit_phi[t])
+  }
+  sig_p ~ dexp(1)
+  mu_p ~ dnorm(0,sd=1.5)
+  sig_rho ~ dexp(1)
+  mu_rho ~ dnorm(0,sd=10)
+  mu_phi ~ dnorm(0,sd=1.5)
+  sig_phi ~ dexp(1)
+
+  xi[1] <- rho[1]
+  for(t in 2:(K-1)){ xi[t] <- rho[t]/(1-prod(1-rho[t:K])) }
+  xi[K] <- 1
+
   #' ---------------------------------------------------------------------------
   #' Unconditional detection probability
   #' ---------------------------------------------------------------------------
-  pstar <- pstar_binom_Do(
+  pstar <- pstar_binom(
     init = pi[1:3],
     prob = pmat[1:K,1:3],
     size = ones[1:K],
@@ -22,13 +43,15 @@ js_code <- nimbleCode({
   #' ---------------------------------------------------------------------------
   #' HMM likelihood for observed individuals
   #' ---------------------------------------------------------------------------
+
   for(i in 1:nobs){
-    x[i, 1:K] ~ dJS_binom_Do(
+    x[i, 1:K] ~ dJS_binom(
       init = pi[1:3],
       prob = pmat[1:K,1:3],
       size = ones[1:K],
       probTrans = Gamma[1:3, 1:3, 1:(K-1)],
-      len = K, pstar=pstar
+      pstar = pstar,
+      len = K
     )
   }
   n ~ dpois(lambda*pstar)
@@ -36,12 +59,12 @@ js_code <- nimbleCode({
   #' ---------------------------------------------------------------------------
   #' Initial entry probability
   #' ---------------------------------------------------------------------------
-  pi[1] <- 1-beta[1]
-  pi[2] <- beta[1]
+  pi[1] <- 1-xi[1]
+  pi[2] <- xi[1]
   pi[3] <- 0
 
   #' ---------------------------------------------------------------------------
-  #' Detection matrix
+  #' Detection probabilities and matrix
   #' ---------------------------------------------------------------------------
   for(t in 1:K){
     pmat[t,1] <- 0
@@ -49,25 +72,12 @@ js_code <- nimbleCode({
     pmat[t,3] <- 0
   }
 
-  for(t in 1:K){
-    p[t] ~ dunif(0,1)
-  }
-
-  #' ---------------------------------------------------------------------------
-  #' Use the code below for Royle & Dorazio (2008) parameterization
-  #' ---------------------------------------------------------------------------
-  # for(t in 2:(K-1)){
-  #   p[t] ~ dunif(0,1)
-  # }
-  # p[1] <- 1
-  # p[K] <- 1
-
   #' ---------------------------------------------------------------------------
   #' Transition probability matrix
   #' ---------------------------------------------------------------------------
   for(t in 1:(K-1)){
-    Gamma[1,1,t] <- 1-xi[t]
-    Gamma[1,2,t] <- xi[t]
+    Gamma[1,1,t] <- 1-xi[t+1]
+    Gamma[1,2,t] <- xi[t+1]
     Gamma[1,3,t] <- 0
     Gamma[2,1,t] <- 0
     Gamma[2,2,t] <- phi[t]
@@ -75,12 +85,9 @@ js_code <- nimbleCode({
     Gamma[3,1,t] <- 0
     Gamma[3,2,t] <- 0
     Gamma[3,3,t] <- 1
-
-    xi[t] <- beta[t+1]/(1-sum(beta[1:t]))
-    phi[t] ~ dunif(0,1)
   }
 
-  beta[1:K] ~ ddirch(mu_beta[1:K])
+  #' lambda prior
   lambda ~ dgamma(1.0e-6, 1.0e-6)
 
   #' ---------------------------------------------------------------------------
@@ -90,13 +97,17 @@ js_code <- nimbleCode({
   nu ~ dpois(lambda*(1-pstar))
   Nsuper <- n+nu
 
-  nu_t[1:3, 1:K] <- sample_state_undet_D(nu, pi[1:3], Gamma[1:3, 1:3, 1:(K-1)])
+  nu_t[1:3, 1:K] <- sample_undet_binom(n=nu, init=pi[1:3], prob=pmat[1:K,1:3],
+                                       size=ones[1:K],
+                                     probTrans=Gamma[1:3, 1:3, 1:(K-1)], len=K)
+
   for(i in 1:nobs){
-    det_state[i,1:K] <- sample_state_det_Do_binom(x[i,1:K], init = pi[1:3],
-                                    prob = pmat[1:K,1:3], size=ones[1:K],
-                                    probTrans = Gamma[1:3, 1:3, 1:(K-1)])
+    det_state[i,1:K] <- sample_det_binom(x=x[i,1:K], init=pi[1:3],
+                                         prob=pmat[1:K,1:3],
+                                         size=ones[1:K],
+                                       probTrans=Gamma[1:3, 1:3, 1:(K-1)])
   }
-  alive[1:nobs, 1:K] <- det_state[1:nobs,1:K]==2
+  alive[1:nobs,1:K] <- det_state[1:nobs,1:K]==2
 
   for(t in 1:K){
     Nd[t] <- sum(alive[1:nobs, t])
