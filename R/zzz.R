@@ -27,9 +27,23 @@
     )
 
     registerDistributions(list(
+      dDHMMo_bern = list(
+        BUGSdist = "dDHMMo_bern(init, prob, probTrans, len)",
+        Rdist = "dDHMMo_bern(init, prob, probTrans, len)",
+        discrete = TRUE,
+        types = c('value = double(1)',
+                  'init = double(1)',
+                  'prob = double(2)',
+                  'probTrans = double(3)',
+                  'len = integer(0)'),
+        mixedSizes = TRUE,
+        pqAvail = FALSE)), verbose = F
+    )
+
+    registerDistributions(list(
       dDHMMo_binom = list(
         BUGSdist = "dDHMMo_binom(init, prob, size, probTrans, len)",
-        Rdist = "dDHMMo_binom(init, probObs, probTrans, len)",
+        Rdist = "dDHMMo_binom(init, prob, size, probTrans, len)",
         discrete = TRUE,
         types = c('value = double(1)',
                   'init = double(1)',
@@ -50,6 +64,21 @@
                   'init = double(1)',
                   'prob = double(2)',
                   'size = double(1)',
+                  'probTrans = double(3)',
+                  'len = integer(0)',
+                  'pstar = double(0)'),
+        mixedSizes = TRUE,
+        pqAvail = FALSE)), verbose = F
+    )
+
+    registerDistributions(list(
+      dJS = list(
+        BUGSdist = " dJS(init, prob, probTrans, len, pstar)",
+        Rdist = " dJS(init, prob, probTrans, len, pstar)",
+        discrete = TRUE,
+        types = c('value = double(1)',
+                  'init = double(1)',
+                  'prob = double(2)',
                   'probTrans = double(3)',
                   'len = integer(0)',
                   'pstar = double(0)'),
