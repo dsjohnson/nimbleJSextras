@@ -3,7 +3,6 @@
 ##
 
 require(nimble)
-require(nimbleEcology)
 require(nimbleJSextras)
 
 js_code <- nimbleCode({
@@ -28,31 +27,6 @@ js_code <- nimbleCode({
   xi[1] <- rho[1]
   for(t in 2:(K-1)){ xi[t] <- rho[t]/(1-prod(1-rho[t:K])) }
   xi[K] <- 1
-
-  #' ---------------------------------------------------------------------------
-  #' Unconditional detection probability
-  #' ---------------------------------------------------------------------------
-  pstar <- pstar_JS(
-    init = pi[1:3],
-    prob = pmat[1:K,1:3],
-    probTrans = Gamma[1:3, 1:3, 1:(K-1)],
-    len=K
-  )
-
-  #' ---------------------------------------------------------------------------
-  #' HMM likelihood for observed individuals
-  #' ---------------------------------------------------------------------------
-
-  for(i in 1:nobs){
-    x[i, 1:K] ~ dJS(
-      init = pi[1:3],
-      prob = pmat[1:K,1:3],
-      probTrans = Gamma[1:3, 1:3, 1:(K-1)],
-      pstar = pstar,
-      len = K
-    )
-  }
-  n ~ dpois(lambda*pstar)
 
   #' ---------------------------------------------------------------------------
   #' Initial entry probability
@@ -85,6 +59,39 @@ js_code <- nimbleCode({
     Gamma[3,3,t] <- 1
   }
 
+
+  #' ---------------------------------------------------------------------------
+  #' Unconditional detection probability
+  #' ---------------------------------------------------------------------------
+  pstar <- calc_pstar(
+    piVector = pi,
+    PArray = pmat,
+    GammaArray = Gamma,
+    len=K
+  )
+
+  #' ---------------------------------------------------------------------------
+  #' HMM likelihood for observed individuals
+  #' ---------------------------------------------------------------------------
+
+  for(i in 1:nobs){
+    x[i, 1:K] ~ dJS(
+      pstar,
+      pi,
+      pmat,
+      Gamma
+    )
+  }
+  n ~ dpois(lambda*pstar)
+
+
+
+  # pmat[1:K,1] <- 0
+  # pmat[1:K,2] <- p
+  # pmat[1:K,3] <- 0
+
+
+
   #' lambda prior
   lambda ~ dgamma(1.0e-6, 1.0e-6)
 
@@ -95,18 +102,15 @@ js_code <- nimbleCode({
   nu ~ dpois(lambda*(1-pstar))
   Nsuper <- n+nu
 
-  nu_t[1:3, 1:K] <- sample_undet(n=nu, init=pi[1:3], prob=pmat[1:K,1:3],
-                                     probTrans=Gamma[1:3, 1:3, 1:(K-1)], len=K)
+  nu_t[1:3, 1:K] ~ dnu(nUndet=nu, pi=pi, PArray=pmat, GammaArray=Gamma, len=K)
 
   for(i in 1:nobs){
-    det_state[i,1:K] <- sample_det(x=x[i,1:K], init=pi[1:3],
-                                         prob=pmat[1:K,1:3],
-                                       probTrans=Gamma[1:3, 1:3, 1:(K-1)])
-  }
-  alive[1:nobs,1:K] <- det_state[1:nobs,1:K]==2
+    z[i,1:K] ~ dState(pi, pmat, Gamma, x[i,1:K])
+    }
+  avail[1:nobs,1:K] <- z[1:nobs,1:K]==2
 
   for(t in 1:K){
-    Nd[t] <- sum(alive[1:nobs, t])
+    Nd[t] <- sum(avail[1:nobs, t])
     N[t] <- Nd[t] + nu_t[2,t]
   }
 })
