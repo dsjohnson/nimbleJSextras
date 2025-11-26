@@ -120,12 +120,12 @@ sample_undet <- nimble::nimbleFunction(
     S <- matrix(0,J,J)
 
     # ---- Forward Pass ----
-    Pdiag <- dbinom(0, 1, prob[1,])
+    Pdiag <- 1 - prob[1,]
     alpha[1, ] <- init * Pdiag
     alpha[1, ] <- alpha[1, ] / sum(alpha[1, ])
 
     for (t in 2:K) {
-      Pdiag <- dbinom(0, 1, prob[t,])
+      Pdiag <- 1 - prob[t,]
       alpha[t, ] <- (alpha[t-1, ] %*% probTrans[, ,t-1]) * Pdiag
       alpha[t, ] <- alpha[t, ] / sum(alpha[t, ])
     }
