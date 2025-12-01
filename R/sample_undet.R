@@ -4,12 +4,11 @@ sample_undet_cat <- nimble::nimbleFunction(
   run = function(n = integer(0, default=1),
                  init = double(1),        # Initial state probabilities
                  probObs = double(3),     # Emission probabilities
-                 probTrans = double(3),   # Transition probabilities
-                 len = integer(0)
+                 probTrans = double(3)   # Transition probabilities
   ) {
     # Number of states
     J <- dim(probTrans)[1]
-    K <- len
+    K <- dim(probObs)[3]
 
     # Forward (α) and Backward (β) matrices
     alpha <- matrix(0, nrow=K, ncol=J)
@@ -55,12 +54,11 @@ sample_undet_binom <- nimble::nimbleFunction(
                  init = double(1),        # Initial state probabilities
                  prob = double(2),
                  size = double(1),
-                 probTrans = double(3),   # Transition probabilities
-                 len = integer(0)
+                 probTrans = double(3)   # Transition probabilities
   ) {
     # Number of states
     J <- dim(probTrans)[1]
-    K <- len
+    K <- dim(prob)[1]
 
     # Forward (α) and Backward (β) matrices
     alpha <- matrix(0, nrow=K, ncol=J)

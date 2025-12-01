@@ -96,15 +96,12 @@ js_code <- nimbleCode({
   nu ~ dpois(lambda*(1-pstar))
   Nsuper <- n+nu
 
-  nu_t[1:3, 1:K] <- sample_undet_binom(n=nu, init=pi[1:3], prob=pmat[1:K,1:3],
-                                       size=ones[1:K],
-                                     probTrans=Gamma[1:3, 1:3, 1:(K-1)], len=K)
+  nu_t[1:3, 1:K] <- sample_undet_binom(nu, pi[1:3], pmat[1:K,1:3], ones[1:K],
+                                     Gamma[1:3, 1:3, 1:(K-1)])
 
   for(i in 1:nobs){
-    det_state[i,1:K] <- sample_det_binom(x=x[i,1:K], init=pi[1:3],
-                                         prob=pmat[1:K,1:3],
-                                         size=ones[1:K],
-                                       probTrans=Gamma[1:3, 1:3, 1:(K-1)])
+    det_state[i,1:K] <- sample_det_binom(x[i,1:K], pi[1:3], pmat[1:K,1:3],
+                                         ones[1:K], Gamma[1:3, 1:3, 1:(K-1)])
   }
   alive[1:nobs,1:K] <- det_state[1:nobs,1:K]==2
 
