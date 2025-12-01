@@ -37,7 +37,7 @@ js_code <- nimbleCode({
     prob = pmat[1:K,1:3],
     size = ones[1:K],
     probTrans = Gamma[1:3, 1:3, 1:(K-1)],
-    len=K
+    len = K
   )
 
   #' ---------------------------------------------------------------------------
@@ -50,8 +50,7 @@ js_code <- nimbleCode({
       prob = pmat[1:K,1:3],
       size = ones[1:K],
       probTrans = Gamma[1:3, 1:3, 1:(K-1)],
-      pstar = pstar,
-      len = K
+      pstar = pstar, len=K
     )
   }
   n ~ dpois(lambda*pstar)

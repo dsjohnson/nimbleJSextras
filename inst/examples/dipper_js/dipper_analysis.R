@@ -17,7 +17,6 @@ data("dipper")
 x <- strsplit(dipper$ch, "") %>% lapply(.,as.numeric) %>% do.call(rbind,.)
 #' Observed states: 1 = not captured, 2 = captured
 x <- x+1
-K <- ncol(x)
 
 #' -----------------------------------------------------------------------------
 #' Load and compile model code
@@ -61,10 +60,9 @@ c_js_mcmc <- compileNimble(js_mcmc)
 #' -----------------------------------------------------------------------------
 
 set.seed(8675309)
-samples <- runMCMC(c_js_mcmc, niter = 60000, nburnin = 10000, nchains = 1,
+samples <- runMCMC(c_js_mcmc, niter = 25000, nburnin = 5000, nchains = 1,
                    thin = 1, samplesAsCodaMCMC = TRUE, progress = TRUE)
 samples_list <- as.list(c_js_mcmc$mvSamples)
-
 samples_list <- lapply(samples_list, mcmc)
 
 #' -----------------------------------------------------------------------------

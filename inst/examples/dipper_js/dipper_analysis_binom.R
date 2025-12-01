@@ -24,7 +24,7 @@ source("dipper_model_binom.R")
 
 js_model <- nimbleModel(
   code = js_code,
-  constants = list(K=ncol(x), nobs=nrow(x), ones=rep(1,K)),
+  constants = list(K=K, nobs=nrow(x), ones=rep(1,K)),
   data = list(x = x, n = nrow(x)),
   inits = list(
   logit_p = rep(qlogis(0.5), K),
@@ -59,10 +59,9 @@ c_js_mcmc <- compileNimble(js_mcmc)
 #' -----------------------------------------------------------------------------
 
 set.seed(8675309)
-samples <- runMCMC(c_js_mcmc, niter = 60000, nburnin = 10000, nchains = 1,
+samples <- runMCMC(c_js_mcmc, niter = 25000, nburnin = 5000, nchains = 1,
                    thin = 1, samplesAsCodaMCMC = TRUE, progress = TRUE)
 samples_list <- as.list(c_js_mcmc$mvSamples)
-
 samples_list <- lapply(samples_list, mcmc)
 
 #' -----------------------------------------------------------------------------

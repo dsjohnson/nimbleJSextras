@@ -36,8 +36,7 @@ js_code <- nimbleCode({
     init = pi[1:3],
     probObs = pmat[1:3, 1:2, 1:K],
     probTrans = Gamma[1:3, 1:3, 1:(K-1)],
-    len=K,
-    checkRowSums = 1
+    len=K
   )
 
   #' ---------------------------------------------------------------------------
@@ -48,7 +47,7 @@ js_code <- nimbleCode({
       init = pi[1:3],
       probObs = pmat[1:3, 1:2, 1:K],
       probTrans = Gamma[1:3, 1:3, 1:(K-1)],
-      len = K, pstar=pstar, checkRowSums = 1
+      pstar=pstar, len = K
     )
   }
   n ~ dpois(lambda*pstar)
