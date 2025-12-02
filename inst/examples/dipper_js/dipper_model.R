@@ -104,10 +104,10 @@ js_code <- nimbleCode({
                                        probObs=pmat[1:3, 1:2, 1:K],
                                        probTrans=Gamma[1:3, 1:3, 1:(K-1)])
   }
-  alive[1:nobs,1:K] <- det_state[1:nobs,1:K]==2
+  available[1:nobs,1:K] <- det_state[1:nobs,1:K]==2
 
   for(t in 1:K){
-    Nd[t] <- sum(alive[1:nobs, t])
+    Nd[t] <- sum(available[1:nobs, t])
     N[t] <- Nd[t] + nu_t[2,t]
   }
 })
