@@ -27,8 +27,8 @@
 
     registerDistributions(list(
       dJS_ms = list(
-        BUGSdist = "dJS_cat(init, probObs, probTrans, pstar, len)",
-        Rdist = "dJS_cat(init, probObs, probTrans, pstar, len)",
+        BUGSdist = "dJS_ms(init, probObs, probTrans, pstar, len)",
+        Rdist = "dJS_ms(init, probObs, probTrans, pstar, len)",
         discrete = TRUE,
         types = c('value = double(1)',
                   'init = double(1)',
