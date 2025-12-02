@@ -26,7 +26,7 @@
     )
 
     registerDistributions(list(
-      dJS_cat = list(
+      dJS_ms = list(
         BUGSdist = "dJS_cat(init, probObs, probTrans, pstar, len)",
         Rdist = "dJS_cat(init, probObs, probTrans, pstar, len)",
         discrete = TRUE,

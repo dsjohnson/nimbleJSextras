@@ -32,7 +32,7 @@ js_code <- nimbleCode({
   #' ---------------------------------------------------------------------------
   #' Unconditional detection probability
   #' ---------------------------------------------------------------------------
-  pstar <- pstar_cat(
+  pstar <- pstar_ms(
     init = pi[1:3],
     probObs = pmat[1:3, 1:2, 1:K],
     probTrans = Gamma[1:3, 1:3, 1:(K-1)],
@@ -43,7 +43,7 @@ js_code <- nimbleCode({
   #' HMM likelihood for observed individuals
   #' ---------------------------------------------------------------------------
   for(i in 1:nobs){
-    x[i, 1:K] ~ dJS_cat(
+    x[i, 1:K] ~ dJS_ms(
       init = pi[1:3],
       probObs = pmat[1:3, 1:2, 1:K],
       probTrans = Gamma[1:3, 1:3, 1:(K-1)],
@@ -96,11 +96,11 @@ js_code <- nimbleCode({
   nu ~ dpois(lambda*(1-pstar))
   Nsuper <- n+nu
 
-  nu_t[1:3, 1:K] <- sample_undet_cat(n=nu, init=pi[1:3], probObs=pmat[1:3,1:2,1:K],
+  nu_t[1:3, 1:K] <- sample_undet_ms(n=nu, init=pi[1:3], probObs=pmat[1:3,1:2,1:K],
                                      probTrans=Gamma[1:3, 1:3, 1:(K-1)], len=K)
 
   for(i in 1:nobs){
-    det_state[i,1:K] <- sample_det_cat(x=x[i,1:K], init=pi[1:3],
+    det_state[i,1:K] <- sample_det_ms(x=x[i,1:K], init=pi[1:3],
                                        probObs=pmat[1:3, 1:2, 1:K],
                                        probTrans=Gamma[1:3, 1:3, 1:(K-1)])
   }

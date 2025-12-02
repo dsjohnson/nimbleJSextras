@@ -1,6 +1,6 @@
 #' @export
 #' @import nimble nimbleEcology
-sample_undet_cat <- nimble::nimbleFunction(
+sample_undet_ms <- nimble::nimbleFunction(
   run = function(n = integer(0, default=1),
                  init = double(1),        # Initial state probabilities
                  probObs = double(3),     # Emission probabilities

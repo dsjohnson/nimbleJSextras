@@ -3,7 +3,7 @@
 
 #' @export
 #' @import nimble nimbleEcology
-sample_det_cat <- nimble::nimbleFunction(
+sample_det_ms <- nimble::nimbleFunction(
   run = function(x = double(1),         # Observation sequence
                  init = double(1),        # Initial state probabilities
                  probObs = double(3),     # Emission probabilities

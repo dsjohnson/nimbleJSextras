@@ -2,7 +2,7 @@
 
 #' @import nimble nimbleEcology
 #' @export
-dJS_cat <- nimble::nimbleFunction(
+dJS_ms <- nimble::nimbleFunction(
   run = function(x = double(1),    ## Observed capture (state) history
                  init = double(1),##
                  probObs = double(3),
@@ -27,7 +27,7 @@ dJS_cat <- nimble::nimbleFunction(
 
 #' @import nimble nimbleEcology
 #' @export
-rJS_cat <- nimble::nimbleFunction(
+rJS_ms <- nimble::nimbleFunction(
   run = function(n = integer(),    ## Observed capture (state) history
                  init = double(1),##
                  probObs = double(3),
@@ -49,7 +49,7 @@ rJS_cat <- nimble::nimbleFunction(
 
 #' @import nimble nimbleEcology
 #' @export
-pstar_cat <- nimble::nimbleFunction(
+pstar_ms <- nimble::nimbleFunction(
   run = function(init = double(1),
                  probObs = double(3),
                  probTrans = double(3),
