@@ -17,6 +17,7 @@ data("dipper")
 x <- strsplit(dipper$ch, "") %>% lapply(.,as.numeric) %>% do.call(rbind,.)
 #' Observed states: 1 = not captured, 2 = captured
 x <- x+1
+
 K <- ncol(x)
 
 #' -----------------------------------------------------------------------------
@@ -26,12 +27,12 @@ source("dipper_model.R")
 
 js_model <- nimbleModel(
   code = js_code,
-  constants = list(K=K, nobs=nrow(x)),
+  constants = list(K=ncol(x), nobs=nrow(x)),
   data = list(x = x, n = nrow(x)),
   inits = list(
     logit_p = rep(qlogis(0.5), K),
     logit_phi = rep(qlogis(0.7), K-1),
-    log_f = rep(0, K-1),
+    log_f = rep(0, K),
     mu_phi=0, mu_p=0, mu_f=0,
     sig_phi=1, sig_p=1, sig_f=1,
     lambda=2*nrow(x)
@@ -40,20 +41,19 @@ js_model <- nimbleModel(
 c_js_model <- compileNimble(js_model)
 js_mcmc <- buildMCMC(js_model,
                      monitors=c("p","mu_p","sig_p",
-                                "mu_f", "sig_f", "f",
                                 "phi","mu_phi","sig_phi",
-                                "lambda","Nsuper", "N")
-                     )
+                                "f", "mu_f","sig_f",
+                                "lambda","Nsuper", "N"))
 c_js_mcmc <- compileNimble(js_mcmc)
 
 
 #' -----------------------------------------------------------------------------
 #' Check initial convergence
 #' -----------------------------------------------------------------------------
-# set.seed(8675309)
-# samples <- runMCMC(c_js_mcmc, niter = 5000, nburnin = 0, nchains = 3,
-#                    thin = 1, samplesAsCodaMCMC = TRUE, progress = TRUE)
-# gelman.diag(samples, autoburnin = FALSE)
+set.seed(8675309)
+samples <- runMCMC(c_js_mcmc, niter = 10000, nburnin = 0, nchains = 3,
+                   thin = 1, samplesAsCodaMCMC = TRUE, progress = TRUE)
+gelman.diag(samples, autoburnin = FALSE)
 
 
 #' -----------------------------------------------------------------------------
@@ -61,7 +61,7 @@ c_js_mcmc <- compileNimble(js_mcmc)
 #' -----------------------------------------------------------------------------
 
 set.seed(8675309)
-samples <- runMCMC(c_js_mcmc, niter = 25000, nburnin = 5000, nchains = 1,
+samples <- runMCMC(c_js_mcmc, niter = 60000, nburnin = 10000, nchains = 1,
                    thin = 1, samplesAsCodaMCMC = TRUE, progress = TRUE)
 samples_list <- as.list(c_js_mcmc$mvSamples)
 samples_list <- lapply(samples_list, mcmc)
@@ -70,40 +70,8 @@ samples_list <- lapply(samples_list, mcmc)
 #' Summarize MCMC
 #' -----------------------------------------------------------------------------
 
-summary(samples_list$lambda)
-HPDinterval(samples_list$lambda)
-
-summary(samples_list$Nsuper)
-HPDinterval(samples_list$Nsuper)
-
-summary(samples_list$f)
-HPDinterval(samples_list$rho)
-
-plot(samples_list$rho)
-
-summary(samples_list$phi)
-HPDinterval(samples_list$phi)
-
-summary(samples_list$p)
-HPDinterval(samples_list$p)
-
-summary(samples_list$mu_f)
-HPDinterval(samples_list$mu_f)
-
-summary(samples_list$sig_f)
-HPDinterval(samples_list$sig_f)
-
-summary(samples_list$mu_phi)
-HPDinterval(samples_list$mu_phi)
-
-summary(samples_list$sig_phi)
-HPDinterval(samples_list$sig_phi)
-
-summary(samples_list$mu_p)
-HPDinterval(samples_list$mu_p)
-
-summary(samples_list$sig_p)
-HPDinterval(samples_list$sig_p)
+summary(samples)
+HPDinterval(samples)
 
 Ndf <- data.frame(year = 1:ncol(x), est=colMeans(samples_list$N), hpd = HPDinterval(mcmc(samples_list$N)))
 ggplot(Ndf) + geom_point(aes(x=year, y=est), size=3) +
