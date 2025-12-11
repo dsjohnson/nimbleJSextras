@@ -3,6 +3,7 @@
 export(dJS_binom)
 export(dJS_ms)
 export(dhmm_binom)
+export(make_nimble_icar)
 export(pstar_binom)
 export(pstar_ms)
 export(rJS_binom)

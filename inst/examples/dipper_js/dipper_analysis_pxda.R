@@ -17,7 +17,7 @@ K <- ncol(y.obs)
 #' -----------------------------------------------------------------------------
 #' Data augmentation
 #' -----------------------------------------------------------------------------
-n.aug <- 1000  # choose augmented size (tune as needed)
+n.aug <- 300  # choose augmented size (tune as needed)
 M <- n.obs + n.aug
 y_aug <- matrix(0, nrow = M, ncol = K)
 y_aug[1:n.obs, ] <- y.obs
@@ -48,9 +48,11 @@ pxda_code <- nimbleCode({
   sig_phi ~ dexp(1)
 
   # conditional recruitment
-  xi[1] <- rho[1]
-  for(t in 2:(K-1)){ xi[t] <- rho[t]/(1-prod(1-rho[t:K])) }
+  for(t in 1:(K-1)){
+    xi[t] <- rho[t]/(1-prod(1-rho[t:K]))
+  }
   xi[K] <- 1
+
   psi ~ dunif(0,1)
   # Individual processes and observations
   for(i in 1:M) {
@@ -113,30 +115,21 @@ Cmcmc <- compileNimble(Rmcmc, project = Rmodel)
 #' Check initial convergence
 #' -----------------------------------------------------------------------------
 # set.seed(8675309)
-# samples <- runMCMC(Cmcmc, niter = 5000, nburnin = 0, nchains = 3,
+# samples <- runMCMC(Cmcmc, niter = 10000, nburnin = 0, nchains = 3,
 #                        thin = 1, samplesAsCodaMCMC = TRUE, progress = TRUE)
 # gelman.diag(samples, autoburnin = FALSE)
 
 #' -----------------------------------------------------------------------------
 #' Run full MCMC
 #' -----------------------------------------------------------------------------
+set.seed(8675309)
 samples <- runMCMC(Cmcmc, niter = 60000, nburnin = 10000, nchains = 1,
                        thin = 1, samplesAsCodaMCMC = TRUE, progress = TRUE)
-
 samples_list <- as.list(Cmcmc$mvSamples)
 
 #' -----------------------------------------------------------------------------
 #' Summarize MCMC
 #' -----------------------------------------------------------------------------
 
-summary(mcmc(samples_list$N))
-summary(mcmc(samples_list$Nsuper))
-summary(mcmc(samples_list$rho))
-summary(mcmc(samples_list$phi))
-summary(mcmc(samples_list$p))
-summary(mcmc(samples_list$mu_rho))
-summary(mcmc(samples_list$sig_rho))
-summary(mcmc(samples_list$mu_phi))
-summary(mcmc(samples_list$sig_phi))
-summary(mcmc(samples_list$mu_p))
-summary(mcmc(samples_list$sig_p))
+summary(samples)
+HPDinterval(samples)

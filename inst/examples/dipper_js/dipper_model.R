@@ -11,22 +11,31 @@ js_code <- nimbleCode({
   for(t in 1:K){
     logit_p[t] ~ dnorm(mu_p, sd=sig_p)
     p[t] <- expit(logit_p[t])
-    logit_rho[t] ~ dnorm(mu_rho, sd=sig_rho)
-    rho[t] <- expit(logit_rho[t])
   }
+  mu_p ~ dnorm(0,sd=1.5)
+  sig_p ~ dexp(1)
+
   for(t in 1:(K-1)){
     logit_phi[t] ~ dnorm(mu_phi, sd=sig_phi)
     phi[t] <- expit(logit_phi[t])
   }
-  sig_p ~ dexp(1)
-  mu_p ~ dnorm(0,sd=1.5)
-  sig_rho ~ dexp(1)
-  mu_rho ~ dnorm(0,sd=10)
   mu_phi ~ dnorm(0,sd=1.5)
   sig_phi ~ dexp(1)
 
-  xi[1] <- rho[1]
-  for(t in 2:(K-1)){ xi[t] <- rho[t]/(1-prod(1-rho[t:K])) }
+  d[1] <- 1
+  beta[1] <- 1
+  for(t in 2:K){
+    log_f[t-1] ~ dnorm(mu_f, sd=sig_f)
+    f[t-1] <- exp(log_f[t-1])
+    beta[t] <- d[t-1] * f[t-1]
+    d[t] <- d[t-1] * (phi[t-1]+f[t-1])
+  }
+  mu_f ~ dnorm(0,sd=1.5)
+  sig_f ~ dexp(1)
+
+  for(t in 1:(K-1)){
+    xi[t] <- beta[t]/sum(beta[t:K])
+  }
   xi[K] <- 1
 
   #' ---------------------------------------------------------------------------
@@ -93,11 +102,11 @@ js_code <- nimbleCode({
   #' Code below is for the posterior predicted abundance
   #' ---------------------------------------------------------------------------
 
-  nu ~ dpois(lambda*(1-pstar))
-  Nsuper <- n+nu
+  M ~ dpois(lambda*(1-pstar))
+  Nsuper <- n + (M-nu_t[1,K])
 
-  nu_t[1:3, 1:K] <- sample_undet_ms(n=nu, init=pi[1:3], probObs=pmat[1:3,1:2,1:K],
-                                     probTrans=Gamma[1:3, 1:3, 1:(K-1)], len=K)
+  nu_t[1:3, 1:K] <- sample_undet_ms(n=M, init=pi[1:3], probObs=pmat[1:3,1:2,1:K],
+                                     probTrans=Gamma[1:3, 1:3, 1:(K-1)])
 
   for(i in 1:nobs){
     det_state[i,1:K] <- sample_det_ms(x=x[i,1:K], init=pi[1:3],

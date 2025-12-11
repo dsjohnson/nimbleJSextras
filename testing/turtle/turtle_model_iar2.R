@@ -9,37 +9,45 @@ require(nimbleJSextras)
 js_code <- nimbleCode({
 
   p_dot ~ dunif(0,1)
-  rho_dot ~ dunif(0,1)
-  for(t in 1:K){rho[t] <- rho_dot}
-  phi_dot ~ dunif(0,1)
-  psi23_dot ~ dunif(0,1)
-  psi32_dot ~ dunif(0,1)
 
-  for(t in 1:(K-1)){ xi[t] <- rho[t]/(1-prod(1-rho[t:K])) }
-  xi[K] <- 1 # for exactness
+  sigma_phi ~ dexp(1)
+  tau_phi <- 1/sigma_phi
+  # logit_phi[1:(K-1)] ~ dcar_normal(adj[1:L], weights[1:L], num[1:(K-1)], tau_phi, 2)
+  for(t in 1:(K-1)){
+    logit_phi[t] ~ dnorm(mean=0, sd=sigma_phi)
+    phi[t] <- expit(logit_phi[t])
+    }
 
-  #' ---------------------------------------------------------------------------
-  #' Unconditional detection probability
-  #' ---------------------------------------------------------------------------
-  pstar <- pstar_ms(
-    init = pi[1:4],
-    probObs = Pmats[1:4, 1:2, 1:K],
-    probTrans = Gamma[1:4, 1:4, 1:(K-1)],
-    len=K
-  )
 
-  #' ---------------------------------------------------------------------------
-  #' HMM likelihood for observed individuals
-  #' ---------------------------------------------------------------------------
-  for(i in 1:nobs){
-    x[i, 1:K] ~ dJS_ms(
-      init = pi[1:4],
-      probObs = Pmats[1:4, 1:2, 1:K],
-      probTrans = Gamma[1:4, 1:4, 1:(K-1)],
-      pstar=pstar, len = K
-    )
-  }
-  n ~ dpois(lambda*pstar)
+  sigma_rho ~ dexp(1)
+  tau_rho <- 1/sigma_rho
+  # logit_rho[1:K] ~ dcar_normal(adj_rho[1:L_rho], weights_rho[1:L_rho], num_rho[1:K], tau_rho, 2)
+  for(t in 1:K){
+    logit_rho[t] ~ dnorm(mean=0, sd=sigma_rho)
+    rho[t] <- expit(logit_rho[t])
+    }
+
+
+  sigma_psi23 ~ dexp(1)
+  tau_psi23 <- 1/sigma_psi23
+  # logit_psi23_dot[1:(K-1)] ~ dcar_normal(adj[1:L], weights[1:L], num[1:(K-1)], tau_psi23, 2)
+  for(t in 1:(K-1)){
+    logit_psi23[t] ~ dnorm(mean=0, sd=sigma_psi23)
+    psi23[t] <- expit(logit_psi23[t])
+    }
+
+
+  sigma_psi32 ~ dexp(1)
+  tau_psi32 <- 1/sigma_psi32
+  # logit_psi32_dot[1:(K-1)] ~ dcar_normal(adj[1:L], weights[1:L], num[1:(K-1)], tau=tau_psi32, 2)
+  for(t in 1:(K-1)){
+    logit_psi32[t] ~ dnorm(mean=0, sd=sigma_psi32)
+    psi32[t] <- expit(logit_psi32[t])
+    }
+
+  # xi[1] <- rho[1]
+  for(t in 1:K{ xi[t] <- rho[t]/(1-prod(1-rho[t:K])) }
+  # xi[K] <- 1
 
   #' ---------------------------------------------------------------------------
   #' Initial entry probability
@@ -74,14 +82,14 @@ js_code <- nimbleCode({
     Gamma[1,4,t] <- 0
 
     Gamma[2,1,t] <- 0
-    Gamma[2,2,t] <- phi_dot * (1-psi23_dot)
-    Gamma[2,3,t] <- phi_dot * psi23_dot
-    Gamma[2,4,t] <- 1 - phi_dot
+    Gamma[2,2,t] <- phi[t] * (1-psi23[t])
+    Gamma[2,3,t] <- phi[t] * psi23[t]
+    Gamma[2,4,t] <- 1 - phi[t]
 
     Gamma[3,1,t] <- 0
-    Gamma[3,2,t] <- phi_dot * psi32_dot
-    Gamma[3,3,t] <- phi_dot * (1-psi32_dot)
-    Gamma[3,4,t] <- 1 - phi_dot
+    Gamma[3,2,t] <- phi[t] * psi[t]
+    Gamma[3,3,t] <- phi[t] * (1-psi32[t])
+    Gamma[3,4,t] <- 1 - phi[t]
 
     Gamma[4,1,t] <- 0
     Gamma[4,2,t] <- 0
@@ -89,8 +97,32 @@ js_code <- nimbleCode({
     Gamma[4,4,t] <- 1
   }
 
+
+  #' ---------------------------------------------------------------------------
+  #' Unconditional detection probability
+  #' ---------------------------------------------------------------------------
+  pstar <- pstar_ms(
+    init = pi[1:4],
+    probObs = Pmats[1:4, 1:2, 1:K],
+    probTrans = Gamma[1:4, 1:4, 1:(K-1)],
+    len=K
+  )
+
+  #' ---------------------------------------------------------------------------
+  #' HMM likelihood for observed individuals
+  #' ---------------------------------------------------------------------------
+  for(i in 1:nobs){
+    x[i, 1:K] ~ dJS_ms(
+      init = pi[1:4],
+      probObs = Pmats[1:4, 1:2, 1:K],
+      probTrans = Gamma[1:4, 1:4, 1:(K-1)],
+      pstar=pstar, len = K
+    )
+  }
+
   #' lambda prior
   lambda ~ dgamma(1.0e-6, 1.0e-6)
+  n ~ dpois(lambda*pstar)
 
   #' ---------------------------------------------------------------------------
   #' Code below is for the posterior predicted abundance
