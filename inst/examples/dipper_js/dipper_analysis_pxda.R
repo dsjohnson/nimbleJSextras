@@ -29,27 +29,33 @@ data <- list(y = y_aug)
 #' PX-DA code
 #' -----------------------------------------------------------------------------
 pxda_code <- nimbleCode({
-  # Priors
   for(t in 1:K){
     logit_p[t] ~ dnorm(mu_p, sd=sig_p)
     p[t] <- expit(logit_p[t])
-    logit_rho[t] ~ dnorm(mu_rho, sd=sig_rho)
-    rho[t] <- expit(logit_rho[t])
   }
+  mu_p ~ dnorm(0,sd=1.5)
+  sig_p ~ dexp(1)
+
   for(t in 1:(K-1)){
     logit_phi[t] ~ dnorm(mu_phi, sd=sig_phi)
     phi[t] <- expit(logit_phi[t])
   }
-  sig_p ~ dexp(1)
-  mu_p ~ dnorm(0,sd=1.5)
-  sig_rho ~ dexp(1)
-  mu_rho ~ dnorm(0,sd=10)
   mu_phi ~ dnorm(0,sd=1.5)
   sig_phi ~ dexp(1)
 
-  # conditional recruitment
+  d[1] <- 1
+  beta[1] <- 1
+  for(t in 2:K){
+    log_f[t-1] ~ dnorm(mu_f, sd=sig_f)
+    f[t-1] <- exp(log_f[t-1])
+    beta[t] <- d[t-1] * f[t-1]
+    d[t] <- d[t-1] * (phi[t-1]+f[t-1])
+  }
+  mu_f ~ dnorm(0,sd=1.5)
+  sig_f ~ dexp(1)
+
   for(t in 1:(K-1)){
-    xi[t] <- rho[t]/(1-prod(1-rho[t:K]))
+    xi[t] <- beta[t]/sum(beta[t:K])
   }
   xi[K] <- 1
 
@@ -82,10 +88,10 @@ pxda_code <- nimbleCode({
 inits <- list(
   logit_p = rep(qlogis(0.5), K),
   logit_phi = rep(qlogis(0.7), K-1),
-  logit_rho = rep(qlogis(0.1), K),
-  psi = 0.5,
-  mu_phi=0, mu_p=0, mu_rho=0,
-  sig_phi=1, sig_p=1, sig_rho=1,
+  log_f = rep(0, K-1),
+  mu_phi=0, mu_p=0, mu_f=0,
+  sig_phi=1, sig_p=1, sig_f=1,
+  psi=0.5,
   z = {
     zinit <- matrix(0, M, K)
     for(i in 1:n.obs) {
@@ -105,7 +111,10 @@ Rmodel <- nimbleModel(pxda_code,
                       data = data,
                       inits = inits, check = TRUE)
 conf <- configureMCMC(Rmodel,
-                      monitors = c("psi", "p", "phi", "rho", "N", "Nsuper","mu_phi","sig_phi","mu_p","sig_p","mu_rho","sig_rho")
+                      monitors=c("p","mu_p","sig_p",
+                                 "phi","mu_phi","sig_phi",
+                                 "f", "mu_f","sig_f",
+                                 "psi","Nsuper", "N")
                       )
 Rmcmc <- buildMCMC(conf)
 Cmodel <- compileNimble(Rmodel)
@@ -114,10 +123,12 @@ Cmcmc <- compileNimble(Rmcmc, project = Rmodel)
 #' -----------------------------------------------------------------------------
 #' Check initial convergence
 #' -----------------------------------------------------------------------------
+# st <- Sys.time()
 # set.seed(8675309)
-# samples <- runMCMC(Cmcmc, niter = 10000, nburnin = 0, nchains = 3,
+# samples <- runMCMC(Cmcmc, niter = 5000, nburnin = 0, nchains = 3,
 #                        thin = 1, samplesAsCodaMCMC = TRUE, progress = TRUE)
 # gelman.diag(samples, autoburnin = FALSE)
+# Sys.time()-st
 
 #' -----------------------------------------------------------------------------
 #' Run full MCMC

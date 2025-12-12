@@ -32,7 +32,7 @@ js_model <- nimbleModel(
   inits = list(
     logit_p = rep(qlogis(0.5), K),
     logit_phi = rep(qlogis(0.7), K-1),
-    log_f = rep(0, K),
+    log_f = rep(0, K-1),
     mu_phi=0, mu_p=0, mu_f=0,
     sig_phi=1, sig_p=1, sig_f=1,
     lambda=2*nrow(x)
@@ -50,11 +50,12 @@ c_js_mcmc <- compileNimble(js_mcmc)
 #' -----------------------------------------------------------------------------
 #' Check initial convergence
 #' -----------------------------------------------------------------------------
-set.seed(8675309)
-samples <- runMCMC(c_js_mcmc, niter = 10000, nburnin = 0, nchains = 3,
-                   thin = 1, samplesAsCodaMCMC = TRUE, progress = TRUE)
-gelman.diag(samples, autoburnin = FALSE)
-
+# st <- Sys.time()
+# set.seed(8675309)
+# samples <- runMCMC(c_js_mcmc, niter = 5000, nburnin = 0, nchains = 3,
+#                    thin = 1, samplesAsCodaMCMC = TRUE, progress = TRUE)
+# gelman.diag(samples, autoburnin = FALSE)
+# Sys.time()-st
 
 #' -----------------------------------------------------------------------------
 #' Run full MCMC
