@@ -8,75 +8,62 @@ require(nimbleJSextras)
 
 js_code <- nimbleCode({
 
+  #' -----------------------------------------------------------------------------
+  #' Capture probability
+  #' -----------------------------------------------------------------------------
   for(t in 1:K){
     logit_p[t] ~ dnorm(mu_p, sd=sig_p)
     p[t] <- expit(logit_p[t])
-    logit_rho[t] ~ dnorm(mu_rho, sd=sig_rho)
-    rho[t] <- expit(logit_rho[t])
   }
-  for(t in 1:(K-1)){
-    logit_phi[t] ~ dnorm(mu_phi, sd=sig_phi)
-    phi[t] <- expit(logit_phi[t])
-  }
-  sig_p ~ dexp(1)
   mu_p ~ dnorm(0,sd=1.5)
-  sig_rho ~ dexp(1)
-  mu_rho ~ dnorm(0,sd=10)
-  mu_phi ~ dnorm(0,sd=1.5)
-  sig_phi ~ dexp(1)
-
-  xi[1] <- rho[1]
-  for(t in 2:(K-1)){ xi[t] <- rho[t]/(1-prod(1-rho[t:K])) }
-  xi[K] <- 1
-
-  #' ---------------------------------------------------------------------------
-  #' Unconditional detection probability
-  #' ---------------------------------------------------------------------------
-  pstar <- pstar_binom(
-    init = pi[1:3],
-    prob = pmat[1:K,1:3],
-    size = ones[1:K],
-    probTrans = Gamma[1:3, 1:3, 1:(K-1)],
-    len = K
-  )
-
-  #' ---------------------------------------------------------------------------
-  #' HMM likelihood for observed individuals
-  #' ---------------------------------------------------------------------------
-
-  for(i in 1:nobs){
-    x[i, 1:K] ~ dJS_binom(
-      init = pi[1:3],
-      prob = pmat[1:K,1:3],
-      size = ones[1:K],
-      probTrans = Gamma[1:3, 1:3, 1:(K-1)],
-      pstar = pstar, len=K
-    )
-  }
-  n ~ dpois(lambda*pstar)
-
-  #' ---------------------------------------------------------------------------
-  #' Initial entry probability
-  #' ---------------------------------------------------------------------------
-  pi[1] <- 1-xi[1]
-  pi[2] <- xi[1]
-  pi[3] <- 0
+  sig_p ~ dexp(1)
 
   #' ---------------------------------------------------------------------------
   #' Detection probabilities and matrix
   #' ---------------------------------------------------------------------------
-  for(t in 1:K){
-    pmat[t,1] <- 0
-    pmat[t,2] <- p[t]
-    pmat[t,3] <- 0
+  Pmats[1:K,1] <- 0
+  Pmats[1:K,2] <- p[1:K]
+  Pmats[1:K,3] <- 0
+
+  #' ---------------------------------------------------------------------------
+  #' Entry and exit probabilities
+  #' ---------------------------------------------------------------------------
+  for(t in 1:(K-1)){
+    logit_phi[t] ~ dnorm(mu_phi, sd=sig_phi)
+    phi[t] <- expit(logit_phi[t])
   }
+  mu_phi ~ dnorm(0,sd=1.5)
+  sig_phi ~ dexp(1)
+
+  d[1] <- 1
+  xi[1] <- 1
+  for(t in 2:K){
+    log_f[t-1] ~ dnorm(mu_f, sd=sig_f)
+    f[t-1] <- exp(log_f[t-1])
+    xi[t] <- d[t-1] * f[t-1]
+    d[t] <- d[t-1] * (phi[t-1]+f[t-1])
+  }
+  mu_f ~ dnorm(0,sd=1.5)
+  sig_f ~ dexp(1)
+
+  for(t in 1:(K-1)){
+    xi_tilde[t] <- xi[t]/sum(xi[t:K])
+  }
+  xi_tilde[K] <- 1
+
+  #' ---------------------------------------------------------------------------
+  #' Initial entry probability
+  #' ---------------------------------------------------------------------------
+  pi[1] <- 1-xi_tilde[1]
+  pi[2] <- xi_tilde[1]
+  pi[3] <- 0
 
   #' ---------------------------------------------------------------------------
   #' Transition probability matrix
   #' ---------------------------------------------------------------------------
   for(t in 1:(K-1)){
-    Gamma[1,1,t] <- 1-xi[t+1]
-    Gamma[1,2,t] <- xi[t+1]
+    Gamma[1,1,t] <- 1-xi_tilde[t+1]
+    Gamma[1,2,t] <- xi_tilde[t+1]
     Gamma[1,3,t] <- 0
     Gamma[2,1,t] <- 0
     Gamma[2,2,t] <- phi[t]
@@ -86,6 +73,32 @@ js_code <- nimbleCode({
     Gamma[3,3,t] <- 1
   }
 
+  #' ---------------------------------------------------------------------------
+  #' Unconditional detection probability
+  #' ---------------------------------------------------------------------------
+
+  pstar <- pstar_binom(
+    init = pi[1:3],
+    prob = Pmats[1:K,1:3],
+    size = ones[1:K],
+    probTrans = Gamma[1:3, 1:3, 1:(K-1)],
+    len=K
+  )
+
+  #' ---------------------------------------------------------------------------
+  #' HMM likelihood for observed individuals
+  #' ---------------------------------------------------------------------------
+  for(i in 1:nobs){
+    x[i, 1:K] ~ dJS_binom(
+      init = pi[1:3],
+      prob = Pmats[1:K,1:3],
+      size = ones[1:K],
+      probTrans = Gamma[1:3, 1:3, 1:(K-1)],
+      pstar=pstar, len = K
+    )
+  }
+  n ~ dpois(lambda*pstar)
+
   #' lambda prior
   lambda ~ dgamma(1.0e-6, 1.0e-6)
 
@@ -94,19 +107,22 @@ js_code <- nimbleCode({
   #' ---------------------------------------------------------------------------
 
   nu ~ dpois(lambda*(1-pstar))
-  Nsuper <- n+nu
+  Nsuper <- n + nu
 
-  nu_t[1:3, 1:K] <- sample_undet_binom(nu, pi[1:3], pmat[1:K,1:3], ones[1:K],
-                                     Gamma[1:3, 1:3, 1:(K-1)])
+  nu_t[1:3, 1:K] <- sample_undet_binom(n=nu, init=pi[1:3], prob= Pmats[1:K,1:3],
+                                       size=ones[1:K],
+                                       probTrans=Gamma[1:3, 1:3, 1:(K-1)])
 
   for(i in 1:nobs){
-    det_state[i,1:K] <- sample_det_binom(x[i,1:K], pi[1:3], pmat[1:K,1:3],
-                                         ones[1:K], Gamma[1:3, 1:3, 1:(K-1)])
+    det_state[i,1:K] <- sample_det_binom(x=x[i,1:K], init=pi[1:3],
+                                      prob=Pmats[1:K,1:3],
+                                      size=ones[1:K],
+                                      probTrans=Gamma[1:3, 1:3, 1:(K-1)])
   }
-  alive[1:nobs,1:K] <- det_state[1:nobs,1:K]==2
+  available[1:nobs,1:K] <- det_state[1:nobs,1:K]==2
 
   for(t in 1:K){
-    Nd[t] <- sum(alive[1:nobs, t])
+    Nd[t] <- sum(available[1:nobs, t])
     N[t] <- Nd[t] + nu_t[2,t]
   }
 })

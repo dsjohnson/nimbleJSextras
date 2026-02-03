@@ -2,7 +2,7 @@ library(lubridate)
 library(tidyverse)
 library(here)
 
-local_wd <- here("inst","examples","dolphin","raw")
+local_wd <- here("inst","examples","dolphin","raw","realData")
 setwd(local_wd)
 
 df <- read_csv("bottlenoseDolph.csv")

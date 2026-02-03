@@ -2,7 +2,7 @@
 
 
 #' @export
-#' @import nimble nimbleEcology
+#' @import nimble
 sample_det_ms <- nimble::nimbleFunction(
   run = function(x = double(1),         # Observation sequence
                  init = double(1),        # Initial state probabilities
@@ -47,7 +47,7 @@ sample_det_ms <- nimble::nimbleFunction(
 )
 
 #' @export
-#' @import nimble nimbleEcology
+#' @import nimble
 sample_det_binom <- nimble::nimbleFunction(
   run = function(x = double(1),         # Observation sequence
                  init = double(1),        # Initial state probabilities
@@ -93,7 +93,7 @@ sample_det_binom <- nimble::nimbleFunction(
 )
 
 #' @export
-#' @import nimble nimbleEcology
+#' @import nimble
 sample_det <- nimble::nimbleFunction(
   run = function(x = double(1),         # Observation sequence
                  init = double(1),        # Initial state probabilities

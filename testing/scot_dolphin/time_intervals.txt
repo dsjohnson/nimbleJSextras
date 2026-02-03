@@ -1,0 +1,11 @@
+## Below are the time intervals (primary and secondary occasions) defined for the datasets JuvAd_Robust design models.txt and Adult only_Robust design models.txt. These time intervals are defined to use in RMark package when fitting mark-recapture models, specifically in the process.data function (see RMark package help for more information and Appendix C in Cooch & White book Program MARK - a gentle introduction, downloadable from http://www.phidot.org/software/mark/docs/book/) ##
+
+## JuvAd_Robust design models.txt ##
+
+time.intervals=c(0,0,1,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0)
+
+## Adult only_Robust design models.txt ##
+
+time.intervals_restr=c(0,0,1,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0)
+
+## NOTE: the time intervals for the calf_age CJS models.txt dataset and JuvAd_Multistate models.txt are annual sightings (i.e. only primary occasions are defined) ##
