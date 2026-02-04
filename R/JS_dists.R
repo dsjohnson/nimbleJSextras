@@ -155,3 +155,65 @@ pstar_binom <- nimble::nimbleFunction(
     return(pstar)
   }
 )
+
+#' -----------------------------------------------------------------------------
+#' Poission observations
+#' -----------------------------------------------------------------------------
+
+#' @import nimble
+#' @export
+dJS_pois <- nimble::nimbleFunction(
+  run = function(x = double(1),    ## Observed capture (state) history
+                 init = double(1),##
+                 rate = double(2),
+                 probTrans = double(3),
+                 pstar = double(),
+                 weight = double(default=1),
+                 len = integer(default=0),
+                 log = integer(default = 0)) {
+    K <- length(x)
+    du <- dhmm_pois(x, init, rate, probTrans, K, 1)
+    logL <- weight*(du - log(pstar))
+    returnType(double(0))
+    if (log) return(logL)
+    return(exp(logL))
+  }
+)
+
+#' @import nimble
+#' @export
+rJS_pois <- nimble::nimbleFunction(
+  run = function(n = integer(),    ## Observed capture (state) history
+                 init = double(1),
+                 rate = double(2),
+                 probTrans = double(3),
+                 pstar = double(default=0),
+                 weight = double(default=1),
+                 len = integer()
+  ) {
+    ind <- 0
+    b <- 0
+    while(b==0){
+      x <- rhmm_pois(n=1, init, rate, probTrans, len)
+      ind <- ind+1
+      if(all(x>0) | ind>10000) b=1
+    }
+    returnType(double(1))
+    return(x)
+  }
+)
+
+#' @import nimble
+#' @export
+pstar_binom <- nimble::nimbleFunction(
+  run = function(init = double(1),
+                 rate = double(2),
+                 probTrans = double(3),
+                 len = integer()) {
+    zeros <- rep(0,len)
+    pstar <- 1 - dhmm_pois(zeros, init, prob, size, probTrans, len, 0)
+    returnType(double(0))
+    return(pstar)
+  }
+)
+

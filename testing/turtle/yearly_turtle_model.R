@@ -61,12 +61,12 @@ js_code <- nimbleCode({
   mu_p ~ dnorm(0,sd=1.5)
   for(t in 1:K){
     tau[t] ~ dnorm(0,sd=sig_tau)
-    logit(p[t]) <- mu_p + tau[t]
+    p[t] <- (1-(t==skip_surv))*expit(mu_p + tau[t])
   }
 
   # t = 27 is the 2020 season where no captures occurred due to COVID
   for(t in 1:K){
-    Pmats[1:n_states,1:2,t] <- load_dt_Pmats((1-(t==covid_yr))*p[t],nd)
+    Pmats[1:n_states,1:2,t] <- load_dt_Pmats(p[t],nd)
   }
 
 
@@ -111,18 +111,18 @@ js_code <- nimbleCode({
   #' ---------------------------------------------------------------------------
   nu ~ dpois(lambda*(1-pstar))
   Nsuper <- n+nu
-  nu_t[1:n_states, 1:K] <- sample_undet_ms(n=nu, init=pi[1:n_states], probObs=Pmats[1:n_states,1:2,1:K], probTrans=Gamma[1:n_states, 1:n_states, 1:(K-1)])
-  for(i in 1:nobs){
-    det_state[i,1:K] <- sample_det_ms(x=x[i,1:K], init=pi[1:n_states],
-                                      probObs=Pmats[1:n_states, 1:2, 1:K],
-                                      probTrans=Gamma[1:n_states, 1:n_states, 1:(K-1)])
-  }
-  nest_obs[1:nobs,1:K] <- det_state[1:nobs,1:K]==2
-  avail_obs[1:nobs,1:K] <- 1-((det_state[1:nobs,1:K]==1) + (det_state[1:nobs,1:K]==nd))
+  # nu_t[1:n_states, 1:K] <- sample_undet_ms(n=nu, init=pi[1:n_states], probObs=Pmats[1:n_states,1:2,1:K], probTrans=Gamma[1:n_states, 1:n_states, 1:(K-1)])
+  # for(i in 1:nobs){
+  #   det_state[i,1:K] <- sample_det_ms(x=x[i,1:K], init=pi[1:n_states],
+  #                                     probObs=Pmats[1:n_states, 1:2, 1:K],
+  #                                     probTrans=Gamma[1:n_states, 1:n_states, 1:(K-1)])
+  # }
+  # nest_obs[1:nobs,1:K] <- det_state[1:nobs,1:K]==2
+  # avail_obs[1:nobs,1:K] <- 1-((det_state[1:nobs,1:K]==1) + (det_state[1:nobs,1:K]==nd))
 
-  for(t in 1:K){
-    N_nest[t] <- sum(nest_obs[1:nobs, t]) + nu_t[2,t]
-    N[t] <- nu - (nu_t[1,t]+nu_t[nd,t]) + sum(avail_obs[1:nobs, t])
-  }
+  # for(t in 1:K){
+  #   N_nest[t] <- sum(nest_obs[1:nobs, t]) + nu_t[2,t]
+  #   N[t] <- nu - (nu_t[1,t]+nu_t[nd,t]) + sum(avail_obs[1:nobs, t])
+  # }
 
 })

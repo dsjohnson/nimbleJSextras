@@ -28,6 +28,20 @@
     )
 
     registerDistributions(list(
+      dhmm_pois = list(
+        BUGSdist = "dhmm_pois(init, rate, probTrans, len)",
+        Rdist = "dhmm_pois(init, rate, probTrans, len)",
+        discrete = TRUE,
+        types = c('value = double(1)',
+                  'init = double(1)',
+                  'rate = double(2)',
+                  'probTrans = double(3)',
+                  'len = integer(0)'),
+        mixedSizes = TRUE,
+        pqAvail = FALSE)), verbose = F
+    )
+
+    registerDistributions(list(
       dJS_ms = list(
         BUGSdist = "dJS_ms(init, probObs, probTrans, pstar, weight, len)",
         Rdist = "dJS_ms(init, probObs, probTrans, pstar, weight, len)",
@@ -59,6 +73,23 @@
         mixedSizes = TRUE,
         pqAvail = FALSE)), verbose = F
     )
+
+    registerDistributions(list(
+      dJS_pois = list(
+        BUGSdist = " dJS_pois(init, rate, probTrans, pstar, weight, len)",
+        Rdist = " dJS_pois(init, rate, probTrans, pstar, weight, len)",
+        discrete = TRUE,
+        types = c('value = double(1)',
+                  'init = double(1)',
+                  'rate = double(2)',
+                  'probTrans = double(3)',
+                  'pstar = double(0)',
+                  'weight = double(0)',
+                  'len = integer(0)'),
+        mixedSizes = TRUE,
+        pqAvail = FALSE)), verbose = F
+    )
+
 
   })
 
