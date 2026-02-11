@@ -10,7 +10,6 @@ library(doFuture)
 
 load("honu_mcmc_sample.RData")
 par_mcmc_list <- samples_list[c("xi","phi","theta","p","nu")]
-honu_ch <- as.matrix(honu_ch)
 
 # Define number of cores and chunk size
 n_cores <- 10 #parallel::detectCores() - 2
@@ -36,8 +35,8 @@ results <- foreach(j = 1:length(chunk_indices),
   # Process a 'chunk' of iterations inside the worker
   # We subset the input matrices inside the worker to save memory
   set.seed(seeds[j])
-  source("make_hmm_mats.R")
-  source("predict_abundance.R")
+  source("helper/make_hmm_mats.R")
+  source("helper/predict_abundance.R")
   idx <- chunk_indices[[j]]
   worker_pred <- compileNimble(predict_abundance)
   pred <- worker_pred(

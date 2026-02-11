@@ -30,7 +30,7 @@ ch_collapsed <- collapse_ch(honu_ch)
 K <- ncol(honu_ch)
 n <- nrow(honu_ch)
 
-source("make_hmm_mats.R")
+source("helper/make_hmm_mats.R")
 source("honu_model.R")
 
 js_model <- nimbleModel(
