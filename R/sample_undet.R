@@ -101,16 +101,15 @@ sample_undet_binom <- nimble::nimbleFunction(
 
 #' @export
 #' @import nimble nimbleEcology
-sample_undet <- nimble::nimbleFunction(
+sample_undet_pois <- nimble::nimbleFunction(
   run = function(n = integer(0, default=1),
                  init = double(1),        # Initial state probabilities
-                 prob = double(2),
-                 probTrans = double(3),   # Transition probabilities
-                 len = integer(0)
+                 rate = double(2),
+                 probTrans = double(3)   # Transition probabilities
   ) {
     # Number of states
     J <- dim(probTrans)[1]
-    K <- len
+    K <- dim(rate)[1]
 
     # Forward (α) and Backward (β) matrices
     alpha <- matrix(0, nrow=K, ncol=J)
@@ -118,12 +117,11 @@ sample_undet <- nimble::nimbleFunction(
     S <- matrix(0,J,J)
 
     # ---- Forward Pass ----
-    Pdiag <- dbinom(0, 1, prob[1,])
+    Pdiag <- dpois(0, rate[1,])
     alpha[1, ] <- init * Pdiag
     alpha[1, ] <- alpha[1, ] / sum(alpha[1, ])
-
     for (t in 2:K) {
-      Pdiag <- dbinom(0, 1, prob[t,])
+      Pdiag <- dpois(0, rate[t,])
       alpha[t, ] <- (alpha[t-1, ] %*% probTrans[, ,t-1]) * Pdiag
       alpha[t, ] <- alpha[t, ] / sum(alpha[t, ])
     }
@@ -150,3 +148,4 @@ sample_undet <- nimble::nimbleFunction(
     return(sampled_states)
   }
 )
+

@@ -94,10 +94,10 @@ sample_det_binom <- nimble::nimbleFunction(
 
 #' @export
 #' @import nimble
-sample_det <- nimble::nimbleFunction(
+sample_det_pois <- nimble::nimbleFunction(
   run = function(x = double(1),         # Observation sequence
                  init = double(1),        # Initial state probabilities
-                 prob = double(2),     # Emission probabilities
+                 rate = double(2),     # Emission probabilities
                  probTrans = double(3)   # Transition probabilities
   ) {
     # Number of states
@@ -109,12 +109,11 @@ sample_det <- nimble::nimbleFunction(
     sampled_states <- numeric(K)  # To store sampled states
 
     # ---- Forward Pass ----
-    Pdiag <- dbinom(x[1], 1, prob[1,])
+    Pdiag <- dpois(x[1], rate[1,])
     alpha[1, ] <- init * Pdiag
     alpha[1, ] <- alpha[1, ] / sum(alpha[1, ])
-
     for (t in 2:K) {
-      Pdiag <- dbinom(x[t], 1, prob[t,])
+      Pdiag <- dpois(x[t], rate[t,])
       alpha[t, ] <- (alpha[t-1, ] %*% probTrans[, ,t-1]) * Pdiag
       alpha[t, ] <- alpha[t, ] / sum(alpha[t, ])
     }
@@ -136,6 +135,4 @@ sample_det <- nimble::nimbleFunction(
     return(sampled_states)
   }
 )
-
-
 

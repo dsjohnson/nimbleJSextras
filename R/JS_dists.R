@@ -205,13 +205,13 @@ rJS_pois <- nimble::nimbleFunction(
 
 #' @import nimble
 #' @export
-pstar_binom <- nimble::nimbleFunction(
+pstar_pois <- nimble::nimbleFunction(
   run = function(init = double(1),
                  rate = double(2),
                  probTrans = double(3),
                  len = integer()) {
     zeros <- rep(0,len)
-    pstar <- 1 - dhmm_pois(zeros, init, prob, size, probTrans, len, 0)
+    pstar <- 1 - dhmm_pois(zeros, init, rate, probTrans, len, 0)
     returnType(double(0))
     return(pstar)
   }
