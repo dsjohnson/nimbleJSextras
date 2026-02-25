@@ -101,6 +101,7 @@ phidf <- data.frame(year = yr[-length(yr)], est=colMeans(phi), hpd = HPDinterval
 ggplot(phidf) + geom_point(aes(x=year, y=est), size=3) +
   geom_errorbar(aes(x=year, ymin=hpd.lower, ymax=hpd.upper), width=0) +
   geom_path(aes(x=year, y=est)) + ylab("Survival probability") + xlab("Year") +
+  coord_cartesian(ylim = c(0, 1)) +
   theme_bw()
 
 # theta
@@ -112,7 +113,7 @@ ggplot(thetadf) + geom_point(aes(x=year, y=est), size=3) +
   theme_bw()
 
 
-rho <- mcmc(samples_list$xi)
+rho <- mcmc(samples_list$rho)
 rhodf <- data.frame(year = yr, est=colMeans(rho), hpd = HPDinterval(rho,0.9))
 ggplot(rhodf) + geom_point(aes(x=year, y=est), size=3) +
   geom_errorbar(aes(x=year, ymin=hpd.lower, ymax=hpd.upper), width=0) +
