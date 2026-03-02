@@ -12,6 +12,8 @@ library(here)
 
 setwd(here("testing","turtle","bernoulli"))
 
+# source("helper/make_hmm_mats.R")
+# source("helper/predict_abundance.R")
 load("honu_mcmc_sample.RData")
 par_mcmc_list <- samples_list[c("xi","phi","theta","p","nu")]
 
@@ -66,10 +68,16 @@ N_avail <- do.call(rbind, results) %>% mcmc()
 
 # Yearly abundance of reproductive females
 yr <- colnames(honu_ch) %>% str_remove("X") %>% as.numeric()
-Ndf <- data.frame(year = yr, est=round(colMeans(N_avail)), hpd = HPDinterval(N_avail,0.9))
-ggplot(Ndf) + geom_point(aes(x=year, y=est), size=3) +
-  geom_errorbar(aes(x=year, ymin=hpd.lower, ymax=hpd.upper), width=0.2) +
-  geom_path(aes(x=year, y=est)) + ylab("Abundance") + xlab("Year") +
+Ndf <- data.frame(
+  year = yr,
+  est=round(colMeans(N_avail)),
+  hpd = HPDinterval(N_avail,0.9)) %>%
+  mutate(
+    col=ifelse(year<1983, "A", "B")
+  )
+ggplot(Ndf) + geom_point(aes(x=year, y=est, color=col), size=3) +
+  geom_errorbar(aes(x=year, ymin=hpd.lower, ymax=hpd.upper, color=col), width=0.2) +
+  geom_path(aes(x=year, y=est, color=col)) + ylab("Abundance") + xlab("Year") +
   theme_bw()
 # ggsave("honu_Nt.pdf", width=6.5, height=4)
 # get_trend <- function(x){
@@ -101,8 +109,10 @@ phidf <- data.frame(year = yr[-length(yr)], est=colMeans(phi), hpd = HPDinterval
 ggplot(phidf) + geom_point(aes(x=year, y=est), size=3) +
   geom_errorbar(aes(x=year, ymin=hpd.lower, ymax=hpd.upper), width=0) +
   geom_path(aes(x=year, y=est)) + ylab("Survival probability") + xlab("Year") +
-  coord_cartesian(ylim = c(0, 1)) +
+  # coord_cartesian(ylim = c(0, 1)) +
   theme_bw()
+
+plot(mcmc(samples_list$sig_phi))
 
 # theta
 theta <- mcmc(par_mcmc_list$theta+2)
@@ -113,29 +123,13 @@ ggplot(thetadf) + geom_point(aes(x=year, y=est), size=3) +
   theme_bw()
 
 
-rho <- mcmc(samples_list$rho)
+rho <- mcmc(samples_list$xi)
 rhodf <- data.frame(year = yr, est=colMeans(rho), hpd = HPDinterval(rho,0.9))
 ggplot(rhodf) + geom_point(aes(x=year, y=est), size=3) +
   geom_errorbar(aes(x=year, ymin=hpd.lower, ymax=hpd.upper), width=0) +
   geom_path(aes(x=year, y=est)) + ylab("Entry probability") + xlab("Year") +
   theme_bw()
 
-
-# Renest dist
-theta <- samples_list$theta
-rn_dist <- NULL
-for(i in 1:length(theta)){
-  rn_dist <- rbind(rn_dist, dpois(c(0:9)-1, theta[i]))
-}
-rn_dist <- mcmc(rn_dist)
-rndf <- data.frame(year=c(1:10), est=colMeans(rn_dist), hpd = HPDinterval(rn_dist))
-ggplot(rndf) + geom_point(aes(x=year, y=est), size=3) +
-  geom_errorbar(aes(x=year, ymin=hpd.lower, ymax=hpd.upper), width=0.2) +
-  geom_path(aes(x=year, y=est)) + ylab("Renest probability") + xlab("Year") +
-  theme_bw()
-
-mean(theta+2)
-HPDinterval(mcmc(theta+2))
 
 
 

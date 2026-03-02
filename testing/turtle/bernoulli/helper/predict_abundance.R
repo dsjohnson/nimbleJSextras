@@ -18,12 +18,12 @@ predict_abundance <- nimbleFunction(
     iter <- dim(xi)[1]
     K <- dim(xi)[2]
     n <- dim(x)[1]
-    n_states <- 4+nd
+    n_states <- 6+2*nd
 
     xi_tilde <- numeric(K)
     Gamma <- nimArray(dim=c(n_states,n_states,K-1))
     pi <- numeric(n_states)
-    Pmats <- nimArray(dim=c(n_states,2,K))
+    Pmats <- nimArray(dim=c(n_states,3,K))
     nu_t <- nimMatrix(nrow=n_states, ncol=K)
     det_state <- nimMatrix(nrow=n, ncol = K)
     nest_obs <- nimMatrix(nrow=n, ncol = K)
@@ -43,11 +43,11 @@ predict_abundance <- nimbleFunction(
 
       for(t in 1:(K-1)){
         zeta <- make_dt_pois(nd, theta[j,t], shift=1)
-        Gamma[,,t] <- make_honu_Gamma(xi_tilde[t+1], phi[j,t], zeta)
-        Pmats[,,t] <- make_honu_Pmats(p[j,t,],nd)
+        Gamma[,,t] <- make_honu_Gamma(xi_tilde[t+1], phi[j,t], p[j,t+1,], alpha=0, zeta)
+        Pmats[,,t] <- make_honu_P(nd)
       }
-      Pmats[,,K] <- make_honu_Pmats(p[j,K,],nd)
-      pi <- make_honu_pi(xi_tilde[1],nd)
+      Pmats[,,K] <- make_honu_P(nd)
+      pi <- make_honu_pi(xi_tilde[1], p[j,1,], alpha=0, nd)
 
       ### Predict abundance for uncaptured id
       nu_t <- sample_undet_ms(nu[j], pi, Pmats, Gamma)
@@ -56,14 +56,14 @@ predict_abundance <- nimbleFunction(
       for(i in 1:n){
         det_state[i, ] <- sample_det_ms(x[i, ], pi, Pmats, Gamma)
       }
-      ### Determine abundnace for nesting and avaialble id
+      ### Determine abundance for nesting and available id
       for(t in 1:K){
         n_nest_obs <- 0
         n_avail_obs <- 0
         for(i in 1:n){
-          if(det_state[i, t] == 2) n_nest_obs <- n_nest_obs + 1
+          if(det_state[i,t]>1 & det_state[i,t]<6) n_nest_obs <- n_nest_obs + 1
           # Check if individual is 'available' (not in state 1 or n_states)
-          if(det_state[i, t] > 1 & det_state[i, t] < n_states) {
+          if(det_state[i,t]>1 & det_state[i,t]<n_states) {
             n_avail_obs <- n_avail_obs + 1
           }
         }

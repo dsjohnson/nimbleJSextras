@@ -16,12 +16,13 @@ js_code <- nimbleCode({
   # alpha ~ dbeta(6,48)
 
   # xi and xi_tilde
-  # sig_beta ~ dexp(1)
-  # for(j in 1:m){beta[j]~dnorm(0,sd=sig_beta)}
-  rho_dot ~ dbeta(1,K)
+  beta_rho_int ~ dnorm(0,sd=1.5)
+  sig_rho ~ dexp(1)
+  for(j in 1:m){ beta_rho[j]~dnorm(0,sd=sig_rho) }
+  # rho_dot ~ dbeta(1,K)
   for(t in 1:K){
-    # logit(rho[t]) <- mu_rho + inprod(B[t,1:m], beta[1:m])
-    rho[t] <- rho_dot
+    logit(rho[t]) <- beta_rho_int + inprod(B[t,1:m], beta_rho[1:m])
+    # rho[t] <- rho_dot
     }
   xi_raw[1] <- rho[1]
   for(t in 2:K){
@@ -36,34 +37,34 @@ js_code <- nimbleCode({
   xi[K] <- xi_raw[K]/xi_norm
 
   # phi
-  # sig_delta ~ dexp(1)
-  mu_phi ~ dnorm(0,sd=1.5)
-  # for(j in 1:m){delta[j]~dnorm(0,sd=sig_delta)}
+  sig_phi ~ dexp(1)
+  beta_phi_int ~ dnorm(0,sd=1.5)
+  for(j in 1:m){ beta_phi[j]~dnorm(0,sd=sig_phi) }
   for(t in 1:(K-1)){
-    logit(phi[t]) <- mu_phi #+ inprod(B[t,1:m], delta[1:m])
+    logit(phi[t]) <- beta_phi_int + inprod(B[t,1:m], beta_phi[1:m])
     }
 
   # Foraging dwell time (theta)
-  # sig_gamma ~ dexp(1)
-  mu_theta ~ dnorm(0,sd=1.5)
-  # for(j in 1:m){gamma[j]~dnorm(0,sd=sig_gamma)}
+  sig_theta ~ dexp(1)
+  beta_theta_int ~ dnorm(0,sd=1.5)
+  for(j in 1:m) { beta_theta[j]~dnorm(0,sd=sig_theta) }
   for(t in 1:(K-1)){
-    log(theta[t]) <- mu_theta #+ inprod(B[t,1:m], gamma[1:m])
+    log(theta[t]) <- beta_theta_int + inprod(B[t,1:m], beta_theta[1:m])
     }
 
   #' ---------------------------------------------------------------------------
   #' Detection
   #' ---------------------------------------------------------------------------
 
-  sig_tau1 ~ dexp(1)
-  sig_tau2 ~ dexp(1)
-  mu_p1 ~ dnorm(0,sd=1.5)
-  mu_p2 ~ dnorm(0,sd=1.5)
+  sig_p ~ dexp(1)
+  beta_p[1] ~ dnorm(0,sd=1.5)
+  # for(j in 1:mp){ beta_p[j] ~ dnorm(0,sd=sig_p) }
+  beta_p[2] ~ dnorm(0,sd=sig_p)
   for(t in 1:K){
-    tau1[t] ~ dnorm(0,sd=sig_tau1)
-    tau2[t] ~ dnorm(0,sd=sig_tau2)
-    p[t,1] <- surv[t]*expit(mu_p1 + tau1[t])
-    p[t,2] <- surv[t]*expit(mu_p2 + tau2[t])
+    # tau[t] ~ dnorm(0,sd=sig_tau)
+    alpha[t] ~ dbeta(5,1)
+    p[t,2] <- surv[t]*expit(inprod(X[t,1:2],beta_p[1:2]))
+    p[t,1] <- surv[t]*alpha[t]*p[t,2]
   }
 
   #' ---------------------------------------------------------------------------
@@ -75,12 +76,12 @@ js_code <- nimbleCode({
   }
 
   # pi
-  pi[1:n_states] <- make_honu_pi(xi_tilde[1], p[1,1:2], alpha, nd)
+  pi[1:n_states] <- make_honu_pi(xi_tilde[1], p[1,1:2], alpha=0, nd)
 
   # Gamma
   for(t in 1:(K-1)){
     zeta[t,1:nd] <- make_dt_pois(nd, theta[t], shift=1)
-    Gamma[1:n_states, 1:n_states, t] <- make_honu_Gamma(xi_tilde[t+1], phi[t], p[t+1,1:2], alpha, zeta[t,1:nd])
+    Gamma[1:n_states, 1:n_states, t] <- make_honu_Gamma(xi_tilde[t+1], phi[t], p[t+1,1:2], alpha=0, zeta[t,1:nd])
   }
 
   #' ---------------------------------------------------------------------------
