@@ -89,8 +89,8 @@ ggplot(Ndf) + geom_point(aes(x=year, y=est, color=col), size=3) +
 
 
 # capture probs
-p1 <- mcmc(par_mcmc_list$p[,,1])
-p2 <- mcmc(par_mcmc_list$p[,,2])
+p1 <- mcmc(par_mcmc_list$p[-c(1:10000),,1])
+p2 <- mcmc(par_mcmc_list$p[-c(1:10000),,2])
 pdf <- data.frame(year = yr,
                          est1=colMeans(p1), hpd1 = HPDinterval(p1, prob=0.9),
                          est2=colMeans(p2), hpd2 = HPDinterval(p2,prob=0.9))

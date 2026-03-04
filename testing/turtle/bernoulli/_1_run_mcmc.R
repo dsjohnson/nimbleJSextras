@@ -21,7 +21,7 @@ K <- ncol(honu_ch)
 n <- nrow(honu_ch)
 
 # design matrices
-B <- cbind(1,make_GRBF(1:K, 5))
+B <- cbind(1,make_GRBF(1:K, 20))
 # X <- model.matrix(~0+total_days, data=effort); X <- X/120
 X <- cbind(1,effort$total_days/120)
 
@@ -30,17 +30,17 @@ source("honu_model.R")
 js_model <- nimbleModel(
   code = js_code,
   constants = list(
-    K=K, nd=7, n_states=6+2*7, m=ncol(B), #mp=2,
-    nobs_u=nrow(ch_collapsed$unique_ch)#, nobs=nrow(honu_ch)
+    K=K, nd=7, n_states=6+2*7, m=ncol(B),
+    nobs_u=nrow(ch_collapsed$unique_ch)
   ),
   data = list(
     ux=ch_collapsed$unique_ch, w=ch_collapsed$w, surv=surv, #x=honu_ch,
-    n=n, B=B, X=X
+    n=n, X=X, B=B
   ),
   inits = list(
     beta_rho_int=0, beta_rho=rep(0,ncol(B)), sig_rho=2,
-    beta_phi_int=0, beta_phi=rep(0,ncol(B)), sig_phi=2,
-    beta_theta_int=0, beta_theta=rep(0,ncol(B)), sig_theta=2,
+    beta_phi_int=0, beta_phi=0, sig_phi=2,
+    beta_theta_int=0, beta_theta=0, sig_theta=2,
     beta_p = rep(0,ncol(X)), sig_p=2,
     alpha=rep(5/6,K),
     lambda=2*n
@@ -56,14 +56,12 @@ mcmcConf <- configureMCMC(js_model,
                           ))
 mcmcConf$removeSamplers('beta_rho')
 mcmcConf$addSampler(target = 'beta_rho', type = 'RW_block')
-mcmcConf$removeSamplers('beta_phi')
-mcmcConf$addSampler(target = 'beta_phi', type = 'RW_block')
-mcmcConf$removeSamplers('beta_theta')
-mcmcConf$addSampler(target = 'beta_theta', type = 'RW_block')
+# mcmcConf$removeSamplers('beta_phi')
+# mcmcConf$addSampler(target = 'beta_phi', type = 'RW_block')
+# mcmcConf$removeSamplers('beta_theta')
+# mcmcConf$addSampler(target = 'beta_theta', type = 'RW_block')
 mcmcConf$removeSamplers('beta_p')
 mcmcConf$addSampler(target = 'beta_p', type = 'RW_block')
-# mcmcConf$removeSamplers('tau')
-# mcmcConf$addSampler(target = 'tau', type = 'RW_block')
 mcmcConf$removeSamplers('alpha')
 mcmcConf$addSampler(target = 'alpha', type = 'RW_block')
 js_mcmc <- buildMCMC(mcmcConf)
@@ -75,7 +73,7 @@ c_js_mcmc <- compileNimble(js_mcmc)
 
 set.seed(8675309)
 st <- Sys.time()
-samples <- runMCMC(c_js_mcmc, niter = 65000, nburnin = 15000, nchains = 1,
+samples <- runMCMC(c_js_mcmc, niter = 50000, nburnin = 20000, nchains = 1,
                    thin = 1, samplesAsCodaMCMC = TRUE, progress = TRUE)
 et <- Sys.time()
 et-st

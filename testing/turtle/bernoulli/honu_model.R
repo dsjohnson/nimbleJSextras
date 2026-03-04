@@ -19,10 +19,9 @@ js_code <- nimbleCode({
   beta_rho_int ~ dnorm(0,sd=1.5)
   sig_rho ~ dexp(1)
   for(j in 1:m){ beta_rho[j]~dnorm(0,sd=sig_rho) }
-  # rho_dot ~ dbeta(1,K)
+  # for(t in 1:K){ eps_rho[t] ~ dnorm(0,sd=sig_rho) }
   for(t in 1:K){
     logit(rho[t]) <- beta_rho_int + inprod(B[t,1:m], beta_rho[1:m])
-    # rho[t] <- rho_dot
     }
   xi_raw[1] <- rho[1]
   for(t in 2:K){
@@ -39,17 +38,19 @@ js_code <- nimbleCode({
   # phi
   sig_phi ~ dexp(1)
   beta_phi_int ~ dnorm(0,sd=1.5)
-  for(j in 1:m){ beta_phi[j]~dnorm(0,sd=sig_phi) }
+  # for(j in 1:m){ beta_phi[j]~dnorm(0,sd=sig_phi) }
+  beta_phi ~ dnorm(0,sd=sig_phi)
   for(t in 1:(K-1)){
-    logit(phi[t]) <- beta_phi_int + inprod(B[t,1:m], beta_phi[1:m])
+    logit(phi[t]) <- beta_phi_int + beta_phi*t #inprod(B[t,1:m], beta_phi[1:m])
     }
 
   # Foraging dwell time (theta)
   sig_theta ~ dexp(1)
   beta_theta_int ~ dnorm(0,sd=1.5)
-  for(j in 1:m) { beta_theta[j]~dnorm(0,sd=sig_theta) }
+  # for(j in 1:m) { beta_theta[j]~dnorm(0,sd=sig_theta) }
+  beta_theta ~ dnorm(0,sd=sig_theta)
   for(t in 1:(K-1)){
-    log(theta[t]) <- beta_theta_int + inprod(B[t,1:m], beta_theta[1:m])
+    log(theta[t]) <- beta_theta_int + beta_theta*t #inprod(B[t,1:m], beta_theta[1:m])
     }
 
   #' ---------------------------------------------------------------------------
