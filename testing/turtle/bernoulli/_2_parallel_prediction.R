@@ -112,7 +112,6 @@ ggplot(phidf) + geom_point(aes(x=year, y=est), size=3) +
   # coord_cartesian(ylim = c(0, 1)) +
   theme_bw()
 
-plot(mcmc(samples_list$sig_phi))
 
 # theta
 theta <- mcmc(par_mcmc_list$theta+2)
@@ -123,12 +122,15 @@ ggplot(thetadf) + geom_point(aes(x=year, y=est), size=3) +
   theme_bw()
 
 
-rho <- mcmc(samples_list$xi)
+rho <- mcmc(samples_list$rho)
 rhodf <- data.frame(year = yr, est=colMeans(rho), hpd = HPDinterval(rho,0.9))
 ggplot(rhodf) + geom_point(aes(x=year, y=est), size=3) +
   geom_errorbar(aes(x=year, ymin=hpd.lower, ymax=hpd.upper), width=0) +
-  geom_path(aes(x=year, y=est)) + ylab("Entry probability") + xlab("Year") +
+  # geom_path(aes(x=year, y=est))
+  ylab("Entry probability") + xlab("Year") +
   theme_bw()
+
+save(N_avail, file="honu_abund_mcmc_sample.RData")
 
 
 

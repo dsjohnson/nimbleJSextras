@@ -1,0 +1,94 @@
+library(marked)
+library(nimble)
+library(nimbleEcology)
+library(nimbleJSextras)
+library(tidyverse)
+library(coda)
+library(modeest)
+library(here)
+
+local_wd <- file.path(here(), "inst", "examples", "dipper_js","collapsed")
+setwd(local_wd)
+
+#'------------------------------------------------------------------------------
+#' Get dipper data from R package 'marked'
+#' -----------------------------------------------------------------------------
+data("dipper")
+#' Convert capture histories to a matrix
+x <- strsplit(dipper$ch, "") %>% lapply(.,as.numeric) %>% do.call(rbind,.)
+#' Observed states: 1 = not captured, 2 = captured
+x <- x+1
+
+K <- ncol(x)
+n <- nrow(x)
+
+#' -----------------------------------------------------------------------------
+#' Load and compile model code
+#' -----------------------------------------------------------------------------
+source("dipper_model.R")
+
+js_model <- nimbleModel(
+  code = js_code,
+  constants = list(K=K, nobs=n),
+  data = list(x=x, n=n),
+  inits = list(
+    logit_p = rep(qlogis(0.5), K),
+    logit_phi = rep(qlogis(0.7), K-1),
+    log_f = rep(0, K-1),
+    mu_phi=0, mu_p=0, mu_f=0,
+    sig_phi=1, sig_p=1, sig_f=1,
+    lambda=2*nrow(x)
+    )
+)
+c_js_model <- compileNimble(js_model)
+js_mcmc <- buildMCMC(js_model,
+                     monitors=c("p","mu_p","sig_p",
+                                "phi","mu_phi","sig_phi",
+                                "f", "mu_f","sig_f",
+                                "lambda","Nsuper", "N"
+                                ))
+c_js_mcmc <- compileNimble(js_mcmc)
+
+
+#' -----------------------------------------------------------------------------
+#' Check initial convergence
+#' -----------------------------------------------------------------------------
+# st <- Sys.time()
+# set.seed(8675309)
+# samples <- runMCMC(c_js_mcmc, niter = 5000, nburnin = 0, nchains = 3,
+#                    thin = 1, samplesAsCodaMCMC = TRUE, progress = TRUE)
+# gelman.diag(samples, autoburnin = FALSE)
+# Sys.time()-st
+
+#' -----------------------------------------------------------------------------
+#' Run full MCMC
+#' -----------------------------------------------------------------------------
+
+set.seed(8675309)
+st <- Sys.time()
+samples <- runMCMC(c_js_mcmc, niter = 60000, nburnin = 10000, nchains = 1,
+                   thin = 1, samplesAsCodaMCMC = TRUE, progress = TRUE)
+et <- Sys.time()
+et - st
+
+samples_list <- as.list(c_js_mcmc$mvSamples)
+
+#' -----------------------------------------------------------------------------
+#' Summarize MCMC
+#' -----------------------------------------------------------------------------
+summary(samples)
+HPDinterval(samples)
+
+#
+Ndf <- data.frame(year = 1:ncol(x), est=colMeans(samples_list$N), hpd = HPDinterval(mcmc(samples_list$N)))
+ggplot(Ndf) + geom_point(aes(x=year, y=est), size=3) +
+  geom_errorbar(aes(x=year, ymin=hpd.lower, ymax=hpd.upper), width=0.2) +
+  geom_path(aes(x=year, y=est)) + ylab("Abundance") + xlab("Year") +
+  theme_bw()
+ggsave("dipper_Nt.pdf", width=6.5, height=4)
+
+
+
+
+
+

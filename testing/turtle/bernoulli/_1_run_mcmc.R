@@ -73,7 +73,7 @@ c_js_mcmc <- compileNimble(js_mcmc)
 
 set.seed(8675309)
 st <- Sys.time()
-samples <- runMCMC(c_js_mcmc, niter = 50000, nburnin = 20000, nchains = 1,
+samples <- runMCMC(c_js_mcmc, niter = 70000, nburnin = 20000, nchains = 1,
                    thin = 1, samplesAsCodaMCMC = TRUE, progress = TRUE)
 et <- Sys.time()
 et-st
