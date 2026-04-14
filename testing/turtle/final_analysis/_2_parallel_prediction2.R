@@ -7,6 +7,9 @@ library(foreach)
 library(future)
 library(doFuture)
 library(here)
+library(latex2exp)
+library(cowplot)
+
 
 ### Read in MCMC sample from stage I
 
@@ -81,7 +84,7 @@ ggplot(Ndf) + geom_point(aes(x=year, y=est), alpha=Ndf$aaa, size=2) +
   geom_errorbar(aes(x=year, ymin=hpd.lower, ymax=hpd.upper), width=0.2, alpha=Ndf$aaa) +
   geom_point(aes(x=year, y=obs), size=2, pch=3) +
   # geom_path(aes(x=year, y=est, color=col)) +
-  ylab("Abundance") + xlab("Year") +
+  ylab(TeX(r"(Yearly abundance ($N_t$))")) + xlab("Year") +
   theme_bw()
 ggsave("abund.png", dpi="retina", width=6.5, height=4)
 
@@ -108,7 +111,7 @@ ggplot(pdf) + geom_point(aes(x=year, y=est1), size=3, color="red") +
   geom_point(aes(x=year, y=est2), size=3, color="blue") +
   geom_errorbar(aes(x=year, ymin=hpd2.lower, ymax=hpd2.upper), width=0, color="blue") +
   # geom_path(aes(x=year, y=est2), color="blue") +
-  ylab("Capture probability") + xlab("Year") +
+  ylab(TeX(r"(Capture probability ($p_t$))")) + xlab("Year") +
   theme_bw()
 ggsave("capt_probs.png", dpi="retina", width=6.5, height=4)
 
@@ -119,19 +122,29 @@ summary(phi)
 HPDinterval(phi)
 plot(phi)
 
-
+# rho and xi
 rho <- mcmc(samples_list$rho)
 rhodf <- data.frame(year = yr, est=colMeans(rho), hpd = HPDinterval(rho,0.9))
-ggplot(rhodf) + geom_point(aes(x=year, y=est), size=3) +
+ppp1 <- ggplot(rhodf) + geom_point(aes(x=year, y=est), size=3) +
   geom_errorbar(aes(x=year, ymin=hpd.lower, ymax=hpd.upper), width=0) +
   # geom_path(aes(x=year, y=est))
-  ylab("Entry probability") + xlab("Year") +
+  ylab(TeX(r"(Recruitment probability ($\rho_t$))")) + xlab("Year") +
   theme_bw()
-ggsave("rho_entry_probs.png", dpi="retina", width=6.5, height=4)
+
+xi <- mcmc(samples_list$xi)
+xidf <- data.frame(year = yr, est=colMeans(xi), hpd = HPDinterval(xi,0.9))
+ppp2 <- ggplot(xidf) + geom_point(aes(x=year, y=est), size=3) +
+  geom_errorbar(aes(x=year, ymin=hpd.lower, ymax=hpd.upper), width=0) +
+  # geom_path(aes(x=year, y=est))
+  ylab(TeX(r"(Entry probability ($\xi_t$))")) + xlab("Year") +
+  theme_bw()
+
+ppp <- plot_grid(ppp1, ppp2, ncol=1, labels = "AUTO")
+ggsave(ppp, filename="rho_entry_probs.png", dpi="retina", width=6.5, height=6.5)
 
 
 ft <- mcmc(samples_list$ft_pdf)
-xxx <- apply(ft, 1, \(x){min(which(cumsum(x)>0.99))})
+#xxx <- apply(ft, 1, \(x){min(which(cumsum(x)>0.99))})
 ftdf <- data.frame(
   `Renest interval` = 2:11,
   est=colMeans(ft),
