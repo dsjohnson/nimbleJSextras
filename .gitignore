@@ -7,9 +7,6 @@ testing
 inst/examples/dipper_js/*.*
 !inst/examples/dipper_js/*.R
 inst/examples/honu_js/
-!inst/examples/honu_js//*.R
-!inst/examples/honu_js/helper/*.R
-!inst/examples/honu_js/honu_ch.csv
 *.pdf
 *.png
 
