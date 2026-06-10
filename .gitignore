@@ -6,3 +6,5 @@ old_code
 testing
 inst/examples/**/*.*
 !inst/examples/**/*.R
+!inst/examples/honu_js/honu_ch.csv
+
