@@ -1,10 +1,15 @@
 .Rproj.user
 .Rhistory
-.RData
+*.RData
 .Ruserdata
 old_code
 testing
-inst/examples/**/*.*
-!inst/examples/**/*.R
+inst/examples/dipper_js/*.*
+!inst/examples/dipper_js/*.R
+inst/examples/honu_js/
+!inst/examples/honu_js//*.R
+!inst/examples/honu_js/helper
 !inst/examples/honu_js/honu_ch.csv
+*.pdf
+*.png
 

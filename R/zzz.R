@@ -1,4 +1,6 @@
 
+#' @import methods
+
 # This file registers all distributions when the package is loaded.
 .onAttach <- function(libname, pkgname) {
 
