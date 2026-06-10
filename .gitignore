@@ -2,7 +2,6 @@
 .Rhistory
 *.RData
 .Ruserdata
-old_code
 testing
 inst/examples/dipper_js/*.*
 !inst/examples/dipper_js/*.R
