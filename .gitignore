@@ -6,10 +6,14 @@ testing/
 inst/examples/dipper_js/*.*
 !inst/examples/dipper_js/*.R
 inst/examples/honu_js/*.*
-inst/examples/honu_js/raw
-!inst/examples/honu_js//*.R
+!inst/examples/honu_js/*.R
 !inst/examples/honu_js/helper/*.R
 !inst/examples/honu_js/honu_ch.csv
 *.pdf
 *.png
 
+inst/examples/honu_js/raw/proc_data.R
+inst/examples/honu_js/raw/winter_temp_anomolies.csv
+inst/examples/honu_js/raw/yearly_detection.txt
+inst/examples/honu_js/raw/yearly_total_sightings.txt
+inst/examples/honu_js/raw/survey_summary.csv
