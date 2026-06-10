@@ -1,0 +1,5 @@
+.*\.RData$
+.*\.[Rr][Dd]ata$
+.*\.png$
+.*\.pdf$
+^testing$

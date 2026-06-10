@@ -4,7 +4,7 @@
 ^README\.*$
 ^README\.md$
 ^README\.Rmd$
-\.RData$
-\.png$
-\.pdf$
-^inst/examples/honu_js/raw$
+.*\.RData$
+.*\.[Rr][Dd]ata$
+.*\.png$
+.*\.pdf$

@@ -1,5 +1,16 @@
-find_examples <- function(){
-
+#' @importFrom utils browseURL
+#' @export
+find_examples <- function(x="dipper", open=TRUE){
+  if(x=="dipper"){
+    ddd <- system.file("examples","dipper_js", package="nimbleJSextras")
+  } else if(x=="honu"){
+    ddd <- system.file("examples","honu_js", package="nimbleJSextras")
+  }
+  if(open){
+    utils::browseURL(ddd)
+  } else{
+      return(ddd)
+    }
 }
 
 
