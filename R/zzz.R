@@ -1,5 +1,11 @@
+find_examples <- function(){
+
+}
+
+
 
 #' @import methods
+#' @importFrom stats dbinom dpois rbinom rpois
 
 # This file registers all distributions when the package is loaded.
 .onAttach <- function(libname, pkgname) {
