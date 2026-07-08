@@ -11,7 +11,7 @@ install.packages('nimbleJSextras', repos='https://dsjohnson.r-universe.dev')
 ```
 
 It is also avaialble from GitHub
-(here)\[<https://github.com/dsjohnson/nimbleJSextras>\] and can be
+[here](%5Bhttps://github.com/dsjohnson/nimbleJSextras) and can be
 installed using the `remotes` package with the command:
 
 ``` r
