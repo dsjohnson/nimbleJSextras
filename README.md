@@ -10,9 +10,9 @@ installed from `R` with the command:
 install.packages('nimbleJSextras', repos='https://dsjohnson.r-universe.dev')
 ```
 
-It is also avaialble from GitHub
-[here](%5Bhttps://github.com/dsjohnson/nimbleJSextras) and can be
-installed using the `remotes` package with the command:
+It is also available from GitHub
+[here](https://github.com/dsjohnson/nimbleJSextras) and can be installed
+using the `remotes` package with the command:
 
 ``` r
 remotes::install_github('dsjohnson/nimbleJSextras')
