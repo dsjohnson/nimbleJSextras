@@ -4,8 +4,6 @@
 
 ## R-Universe
 
-*This doesn’t work yet!*
-
 ### Binary
 
 ``` r

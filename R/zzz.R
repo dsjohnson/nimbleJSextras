@@ -1,24 +1,27 @@
-#' @importFrom utils browseURL
-#' @export
-find_examples <- function(x="dipper", open=TRUE){
-  if(x=="dipper"){
-    ddd <- system.file("examples","dipper_js", package="nimbleJSextras")
-  } else if(x=="honu"){
-    ddd <- system.file("examples","honu_js", package="nimbleJSextras")
-  }
-  if(open){
-    utils::browseURL(ddd)
-  } else{
-      return(ddd)
-    }
-}
+# #' @importFrom utils browseURL
+# #' @export
+# find_examples <- function(x="dipper", open=TRUE){
+#   if(x=="dipper"){
+#     ddd <- system.file("examples","dipper_js", package="nimbleJSextras")
+#   } else if(x=="honu"){
+#     ddd <- system.file("examples","honu_js", package="nimbleJSextras")
+#   }
+#   if(open){
+#     utils::browseURL(ddd)
+#   } else{
+#       return(ddd)
+#     }
+# }
 
-
-
+###
+### General packages to import
+###
 #' @import methods
 #' @importFrom stats dbinom dpois rbinom rpois
 
-# This file registers all distributions when the package is loaded.
+###
+### This registers all distributions when the package is loaded.
+###
 .onAttach <- function(libname, pkgname) {
 
   requireNamespace("nimble")

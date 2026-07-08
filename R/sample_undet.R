@@ -1,3 +1,31 @@
+#' Sample states for undetected (not captured) individuals
+#' @aliases sample_undet_binom sample_undet_ms sample_undet_pois
+#' @name sample_undet
+#' @param n Integer number of individuals to generate samples. This returns a
+#' `n` x (number of occasions) matrix of sampled states for individuals that
+#' were never captured.
+#' @param init A vector of initial state probabilities
+#' @param probObs Time-dependent 3D array of observation probabilities.  First
+#' two dimensions of `probObs` are of size x (number of possible system states)
+#' x (number of possible observation classes) and the third dimension is the
+#' number of occasions. `probObs[i, j ,t]` is the probability that an individual
+#' in the ith latent state is recorded as being in the jth detection state at
+#' time t.
+#' @param probTrans Time-dependent array of system state transition
+#' probabilities. Dimension of `probTrans` is (number of possible system states)
+#' x (number of possible system states) x (number of occasions).
+#' `probTrans[i,j,t]` is the probability that an individual truly in state i at
+#' time t will be in state j at time t+1.
+#' @param prob For `dJS_binom` this is a 2d array that is (number of occasions)
+#' x (number of states) which contains the probability of detection for each
+#' state at time t. For a standard robust design there are 3 states: prior to
+#' entry, entered, and exited. In this case the first and third column would
+#' contain all 0s.
+#' @param size A vector of the number of secondary occasions for each primary
+#' occasion in a robust design.
+#' @param rate A vector of detection rates for continuous-time secondary
+#' occasions in `dJS_pois`. This should be proportional to the interval of time
+#' each secondary occasion was executed.
 #' @export
 #' @import nimble nimbleEcology
 sample_undet_ms <- nimble::nimbleFunction(
@@ -49,6 +77,7 @@ sample_undet_ms <- nimble::nimbleFunction(
 
 #' @export
 #' @import nimble nimbleEcology
+#' @rdname sample_undet
 sample_undet_binom <- nimble::nimbleFunction(
   run = function(n = integer(0, default=1),
                  init = double(1),        # Initial state probabilities
@@ -101,6 +130,7 @@ sample_undet_binom <- nimble::nimbleFunction(
 
 #' @export
 #' @import nimble nimbleEcology
+#' @rdname sample_undet
 sample_undet_pois <- nimble::nimbleFunction(
   run = function(n = integer(0, default=1),
                  init = double(1),        # Initial state probabilities

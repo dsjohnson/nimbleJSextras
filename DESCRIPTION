@@ -1,7 +1,7 @@
 Package: nimbleJSextras
 Type: Package
 Title: Aadditional Functions and Distributions For Bayesian Inference Of Jolly-Seber Models For The NIMBLE Package
-Version: 0.0.9025
+Version: 0.1.9001
 Authors@R: c(
     person(
       "Devin", "Johnson",
@@ -11,8 +11,8 @@ Authors@R: c(
   )
 Description: More about what it does (maybe more than one line).
     Continuation lines should be indented.
-Imports: nimble, nimbleEcology, methods, utils
+Imports: nimble, nimbleEcology, methods
 License: CC0
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.3.3
+Config/roxygen2/version: 8.0.0
