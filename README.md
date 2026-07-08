@@ -2,21 +2,17 @@
 
 # Installation
 
-## R-Universe
-
-### Binary
+The `R-universe` site for `nimbleJSextras` is
+[here](https://dsjohnson.r-universe.dev/nimbleJSextras) and can be
+installed from `R` with the command:
 
 ``` r
 install.packages('nimbleJSextras', repos='https://dsjohnson.r-universe.dev')
 ```
 
-### Source
-
-``` r
-install.packages('nimbleJSextras', type='source', repos='https://dsjohnson.r-universe.dev')
-```
-
-## github
+It is also avaialble from GitHub
+(here)\[<https://github.com/dsjohnson/nimbleJSextras>\] and can be
+installed using the `remotes` package with the command:
 
 ``` r
 remotes::install_github('dsjohnson/nimbleJSextras')
