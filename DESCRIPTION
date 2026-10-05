@@ -4,8 +4,8 @@ Title: Aadditional Functions and Distributions For Bayesian Inference Of Jolly-S
 Version: 0.1.9001
 Authors@R: c(
     person(
-      "Devin", "Johnson",
-      email = "devin.johnson@noaa.gov",
+      "John", "Doe",
+      email = "john.doe@email.com",
       role = c("aut", "cre")
     )
   )
