@@ -14,6 +14,21 @@
 # }
 
 ###
+### R/nimble_types.R
+###
+#' @title Simulation output object
+#' @field ch A matrix of observed states for the simulated data (included all zero capture hostories as well)
+#' @field true_states A matrix of true states for the simulated data
+#' @field observed An indicator vector that shows which individuals were actually captured.
+#' @import nimble
+#' @export
+sim_js_list <- nimbleList(
+  ch = double(2),
+  true_states = double(2),
+  observed = integer(1)
+)
+
+###
 ### General packages to import
 ###
 #' @import methods

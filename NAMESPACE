@@ -20,10 +20,15 @@ export(sample_det_pois)
 export(sample_undet_binom)
 export(sample_undet_ms)
 export(sample_undet_pois)
+export(sim_js_list)
+export(simulate_js)
+export(simulate_multistate_js)
 import(methods)
 import(nimble)
 import(nimbleEcology)
-importFrom(stats,dbinom)
-importFrom(stats,dpois)
-importFrom(stats,rbinom)
-importFrom(stats,rpois)
+importFrom(stats,
+  dbinom,
+  dpois,
+  rbinom,
+  rpois
+)
