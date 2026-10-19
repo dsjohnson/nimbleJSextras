@@ -34,17 +34,18 @@ simulate_js <- nimbleFunction(
     pi[3] <- 0
 
     #TPM
-    G <- array(0.0, dim=c(3,3,K-1))
-    for(t in 1:(K-1)){
-      G[1,1,t] <- 1-xi_tilde[t+1]
-      G[1,2,t] <- xi_tilde[t+1]
-      G[2, 2, t] <- phi[t]
-      G[2, 3, t] <- 1-phi[t]
-      G[3,3,t] <- 1
-    }
+    # G <- array(0.0, dim=c(3,3,K-1))
+    # for(t in 1:(K-1)){
+    #   G[1,1,t] <- 1-xi_tilde[t+1]
+    #   G[1,2,t] <- xi_tilde[t+1]
+    #   G[2, 2, t] <- phi[t]
+    #   G[2, 3, t] <- 1-phi[t]
+    #   G[3,3,t] <- 1
+    # }
 
     #Sim states and ch
     for (i in 1:N) {
+      # sample state for idiv i
       z[i,1] <- rcat(1, pi)
       if(z[i,1]==2){
         x[i,1] <- rbinom(1, 1, p[1])
@@ -53,7 +54,15 @@ simulate_js <- nimbleFunction(
       }
       if(x[i,1]==1) observed[i] <- 1
       for(t in 2:K){
-        z[i,t] <- rcat(1, G[z[i,t-1], 1:3, t-1])
+        # sample state
+        if(z[i,t-1]==1){
+          z[i,t] <- rbinom(1, 1,  xi_tilde[t]) + 1
+        } else if(z[i,t-1]==2){
+          z[i,t] <- z[i,t-1] + (1-rbinom(1,1,phi[i,t-1]))
+        } else{
+          z[i,t] <- z[i,t-1]
+        }
+        # sample obs for indiv i
         if(z[i,t]==2){
           x[i,t] <- rbinom(1, 1, p[t])
         } else{
