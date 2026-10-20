@@ -41,7 +41,7 @@ dhmm_binom <- nimbleFunction(
       Zpi <- Pdiag * alpha
       sumZpi <- sum(Zpi)
       logL <- logL + log(sumZpi)
-      if (t != len) alpha <- ((Zpi %*% probTrans[,,t]) / sumZpi)[1, ]
+      if (t < len) alpha <- ((Zpi %*% probTrans[,,t]) / sumZpi)[1, ]
     }
     returnType(double())
     if (log) return(logL)
@@ -64,7 +64,7 @@ rhmm_binom <- nimbleFunction(
     state <- rcat(1,init)
     for(t in 1:len){
       x[t] <- rbinom(1,size[t],prob[t,state])
-      if(t!=len) state <- rcat(1,probTrans[state,,t])
+      if(t<len) state <- rcat(1,probTrans[state,,t])
     }
     returnType(double(1))
     return(x)
@@ -92,7 +92,7 @@ dhmm_pois <- nimbleFunction(
       Zpi <- Pdiag * alpha
       sumZpi <- sum(Zpi)
       logL <- logL + log(sumZpi)
-      if (t != len) alpha <- ((Zpi %*% probTrans[,,t]) / sumZpi)[1, ]
+      if (t < len) alpha <- ((Zpi %*% probTrans[,,t]) / sumZpi)[1, ]
     }
     returnType(double())
     if (log) return(logL)
@@ -114,7 +114,7 @@ rhmm_pois <- nimbleFunction(
     state <- rcat(1,init)
     for(t in 1:len){
       x[t] <- rpois(1,rate[t,state])
-      if(t!=len) state <- rcat(1,probTrans[state,,t])
+      if(t<len) state <- rcat(1,probTrans[state,,t])
     }
     returnType(double(1))
     return(x)
