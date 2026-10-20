@@ -6,8 +6,6 @@
 \alias{load_Gamma_ms}
 \alias{load_probObs}
 \alias{load_probObs_ms}
-\alias{load_Psi_Barker}
-\alias{load_proposal_Barker}
 \title{Convenience functions for loading parameter matrices for Jolly-Seber models}
 \usage{
 load_Gamma(xi_tilde, phi)
@@ -17,10 +15,6 @@ load_probObs(p)
 load_Gamma_ms(xi_tilde, alpha, phi, Psi)
 
 load_probObs_ms(p)
-
-load_Psi_Barker(omega, Q)
-
-load_proposal_Barker(n, eta)
 }
 \arguments{
 \item{xi_tilde}{A double representing the recruitment/entry probability.}
@@ -32,20 +26,10 @@ load_proposal_Barker(n, eta)
 \item{alpha}{A numeric vector specifying the initial distribution across alive states upon entry.}
 
 \item{Psi}{A matrix of dimension S x S detailing the true movement transition probabilities.}
-
-\item{omega}{A numeric vector representing the stationary/target state distribution for the Barker movement model.}
-
-\item{Q}{A matrix of dimension S x S containing the underlying movement proposal probabilities.}
-
-\item{n}{An integer specifying the number of unique discrete states (dimension of the matrix).}
-
-\item{eta}{A double specifying the exponential decay rate for spatial/state proposals.}
 }
 \value{
-A matrix representing the full state transition structure (for \code{load_Gamma} / \code{load_Gamma_ms}),
-the full observation probability structure (for \code{load_probObs} / \code{load_probObs_ms}),
-the Barker movement matrix (for \code{load_Psi_Barker}), or
-the normalized proposal matrix (for \code{load_proposal_Barker}).
+A matrix representing the full state transition structure (for \code{load_Gamma} / \code{load_Gamma_ms})
+or the full observation probability structure (for \code{load_probObs} / \code{load_probObs_ms}).
 }
 \description{
 Convenience functions for loading parameter matrices for Jolly-Seber models

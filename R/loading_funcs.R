@@ -1,6 +1,6 @@
 #' Convenience functions for loading parameter matrices for Jolly-Seber models
 #'
-#' @aliases load_Gamma load_Gamma_ms load_probObs load_probObs_ms load_Psi_Barker load_proposal_Barker
+#' @aliases load_Gamma load_Gamma_ms load_probObs load_probObs_ms
 #' @name load_foo
 #'
 #' @param xi_tilde A double representing the recruitment/entry probability.
@@ -8,15 +8,9 @@
 #' @param alpha A numeric vector specifying the initial distribution across alive states upon entry.
 #' @param Psi A matrix of dimension S x S detailing the true movement transition probabilities.
 #' @param p For \code{load_probObs}: a scalar capture probability. For \code{load_probObs_ms}: a numeric vector containing state-specific capture probabilities.
-#' @param omega A numeric vector representing the stationary/target state distribution for the Barker movement model.
-#' @param Q A matrix of dimension S x S containing the underlying movement proposal probabilities.
-#' @param n An integer specifying the number of unique discrete states (dimension of the matrix).
-#' @param eta A double specifying the exponential decay rate for spatial/state proposals.
 #'
-#' @return A matrix representing the full state transition structure (for \code{load_Gamma} / \code{load_Gamma_ms}),
-#' the full observation probability structure (for \code{load_probObs} / \code{load_probObs_ms}),
-#' the Barker movement matrix (for \code{load_Psi_Barker}), or
-#' the normalized proposal matrix (for \code{load_proposal_Barker}).
+#' @return A matrix representing the full state transition structure (for \code{load_Gamma} / \code{load_Gamma_ms})
+#' or the full observation probability structure (for \code{load_probObs} / \code{load_probObs_ms}).
 #' @export
 #' @import nimble
 load_Gamma <- nimbleFunction(
@@ -87,69 +81,6 @@ load_probObs_ms <- nimbleFunction(
     return(P)
   })
 
-#' @rdname load_foo
-#' @export
-#' @import nimble
-load_Psi_Barker <- nimbleFunction(
-  run = function(
-    omega = double(1), Q = double(2)
-  ) {
-    returnType(double(2))
-    S <- length(omega)
-    Psi <- nimMatrix(0, S, S)
-
-    for(j in 1:S){
-      row_sum <- 0.0
-      for(k in 1:S){
-        if(k != j) {
-          # Guard against division by zero
-          denominator <- (omega[j] * Q[j, k]) + (omega[k] * Q[k, j])
-
-          if(denominator > 0.0) {
-            Psi[j, k] <- (omega[k] * Q[j, k] * Q[k, j]) / denominator
-          } else {
-            Psi[j, k] <- 0.0
-          }
-          row_sum <- row_sum + Psi[j, k]
-        }
-      }
-      Psi[j, j] <- 1.0 - row_sum
-    }
-    return(Psi)
-  }
-)
-
-#' @rdname load_foo
-#' @export
-#' @import nimble
-load_proposal_Barker <- nimbleFunction(
-  run = function(n = integer(), eta = double()){
-    returnType(double(2))
-    Q <- nimMatrix(0, n, n) # Optimized NIMBLE matrix allocator
-
-    for(j in 1:n){
-      row_sum <- 0.0
-
-      # Step 1: Calculate raw exponential decays for row j
-      for(k in 1:n){
-        if(k != j) {
-          Q[j, k] <- exp(-eta * abs(j - k))
-          row_sum <- row_sum + Q[j, k]
-        } else {
-          Q[j, j] <- 0.0 # Standard hollow diagonal for Barker proposals
-        }
-      }
-
-      # Step 2: Safe normalization loop for row j (replaces vector slicing)
-      if(row_sum > 0.0) {
-        for(k in 1:n) {
-          Q[j, k] <- Q[j, k] / row_sum
-        }
-      }
-    }
-    return(Q)
-  }
-)
 
 # #'@export
 # #'@import nimble
