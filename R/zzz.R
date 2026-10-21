@@ -127,6 +127,25 @@ sim_js_list <- nimbleList(
         pqAvail = FALSE)), verbose = F
     )
 
+    registerDistributions(list(
+      dJS_mark = list(
+        BUGSdist = " dJS_mark(mark, init, prob, probTrans, pstar, knots, sigma_knot, len)",
+        Rdist = " dJS_mark(mark, init, prob, probTrans, pstar, knots, sigma_knot, len)",
+        discrete = TRUE,
+        types = c('value = double(1)',
+                  'mark = double(1)',
+                  'init = double(1)',
+                  'prob = double(2)',
+                  'probTrans = double(3)',
+                  'pstar = double(0)',
+                  'knots = double(1)',
+                  'sigma_knot = double()',
+                  'len = integer(0)'),
+        mixedSizes = TRUE,
+        pqAvail = FALSE)), verbose = F
+    )
+
+
 
   })
 
