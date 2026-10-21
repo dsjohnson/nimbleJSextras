@@ -1,16 +1,35 @@
-#' Convenience functions for loading parameter matrices for Jolly-Seber models
+#' Convenience functions for loading transition and observation parameter matrices for Jolly-Seber models
 #'
-#' @aliases load_Gamma load_Gamma_ms load_probObs load_probObs_ms
+#' Functions to generate the full transition matrix `Gamma` or observation probability
+#' matrix `P` for single-state and multistate Jolly-Seber models.
+#'
+#' @aliases load_foo load_Gamma load_Gamma_ms load_probObs load_probObs_ms
 #' @name load_foo
 #'
-#' @param xi_tilde A double representing the recruitment/entry probability.
-#' @param phi For \code{load_Gamma}: a scalar survival probability. For \code{load_Gamma_ms}: a numeric vector containing state-specific survival probabilities.
-#' @param alpha A numeric vector specifying the initial distribution across alive states upon entry.
-#' @param Psi A matrix of dimension S x S detailing the true movement transition probabilities.
-#' @param p For \code{load_probObs}: a scalar capture probability. For \code{load_probObs_ms}: a numeric vector containing state-specific capture probabilities.
+#' @param xi_tilde Scalar representing recruitment/entry probability.
+#' @param phi For \code{load_Gamma}: a scalar survival probability.
+#'   For \code{load_Gamma_ms}: a numeric vector of length `J` containing state-specific survival probabilities.
+#' @param alpha A numeric vector of length `J` specifying the initial distribution across active states upon entry.
+#' @param Psi Matrix of dimension `J x J` detailing movement transition probabilities between active states.
+#' @param p For \code{load_probObs}: a scalar capture probability.
+#'   For \code{load_probObs_ms}: a numeric vector of length `J` containing state-specific capture probabilities.
 #'
-#' @return A matrix representing the full state transition structure (for \code{load_Gamma} / \code{load_Gamma_ms})
-#' or the full observation probability structure (for \code{load_probObs} / \code{load_probObs_ms}).
+#' @return
+#' For single-state models (\code{load_Gamma}, \code{load_probObs}):
+#' \itemize{
+#'   \item \code{load_Gamma}: A `3 x 3` state-transition matrix.
+#'   \item \code{load_probObs}: A `3 x 2` observation probability matrix.
+#' }
+#' For multistate models (\code{load_Gamma_ms}, \code{load_probObs_ms}):
+#' \itemize{
+#'   \item \code{load_Gamma_ms}: A `(J+2) x (J+2)` state-transition matrix (where `J` is the number of active states).
+#'   \item \code{load_probObs_ms}: A `(J+2) x 2` observation probability matrix.
+#' }
+#'
+#' @import nimble
+NULL
+
+#' @rdname load_foo
 #' @export
 #' @import nimble
 load_Gamma <- nimbleFunction(
@@ -80,43 +99,3 @@ load_probObs_ms <- nimbleFunction(
     P[S+2,2] <- 0
     return(P)
   })
-
-
-# #'@export
-# #'@import nimble
-# #'@rdname load_foo
-# load_mix_Gamma <- nimbleFunction(
-#   run = function(xi_tilde = double(1), phi = double(1)) {
-#     returnType(double(2))
-#
-#     nmix <- length(phi)
-#     idx <- c(1:(3*nmix))[rep(1:3, nmix)==1]-1
-#     Gamma <- nimMatrix(0,3*nmix,3*nmix)
-#     for(i in 1:nmix){
-#       Gamma[idx[i]+1,idx[i]+1] <- 1 - xi_tilde[i]
-#       Gamma[idx[i]+1,idx[i]+2] <- xi_tilde[i]
-#       Gamma[idx[i]+2,idx[i]+2] <- phi[i]
-#       Gamma[idx[i]+2,idx[i]+3] <- 1- phi[i]
-#       Gamma[idx[i]+3,idx[i]+3] <- 1
-#     }
-#     return(Gamma)
-#   })
-
-
-# #'@export
-# #'@import nimble
-# #'@rdname load_foo
-# load_mix_P <- nimbleFunction(
-#   run = function(p = double(1)) {
-#     returnType(double(2))
-#
-#     nmix <- length(p)
-#     idx <- c(1:(3*nmix))[rep(1:3, nmix)==1]-1
-#     P <- nimMatrix(0,3*nmix,2)
-#     P[,1] <- 1
-#     for(i in 1:nmix){
-#       P[idx[i]+2,1] <- 1 - p[i]
-#       P[idx[i]+2,2] <- p[i]
-#     }
-#     return(P)
-#   })

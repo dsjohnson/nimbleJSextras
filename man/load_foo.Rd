@@ -6,7 +6,7 @@
 \alias{load_Gamma_ms}
 \alias{load_probObs}
 \alias{load_probObs_ms}
-\title{Convenience functions for loading parameter matrices for Jolly-Seber models}
+\title{Convenience functions for loading transition and observation parameter matrices for Jolly-Seber models}
 \usage{
 load_Gamma(xi_tilde, phi)
 
@@ -17,20 +17,31 @@ load_Gamma_ms(xi_tilde, alpha, phi, Psi)
 load_probObs_ms(p)
 }
 \arguments{
-\item{xi_tilde}{A double representing the recruitment/entry probability.}
+\item{xi_tilde}{Scalar representing recruitment/entry probability.}
 
-\item{phi}{For \code{load_Gamma}: a scalar survival probability. For \code{load_Gamma_ms}: a numeric vector containing state-specific survival probabilities.}
+\item{phi}{For \code{load_Gamma}: a scalar survival probability.
+For \code{load_Gamma_ms}: a numeric vector of length `J` containing state-specific survival probabilities.}
 
-\item{p}{For \code{load_probObs}: a scalar capture probability. For \code{load_probObs_ms}: a numeric vector containing state-specific capture probabilities.}
+\item{p}{For \code{load_probObs}: a scalar capture probability.
+For \code{load_probObs_ms}: a numeric vector of length `J` containing state-specific capture probabilities.}
 
-\item{alpha}{A numeric vector specifying the initial distribution across alive states upon entry.}
+\item{alpha}{A numeric vector of length `J` specifying the initial distribution across active states upon entry.}
 
-\item{Psi}{A matrix of dimension S x S detailing the true movement transition probabilities.}
+\item{Psi}{Matrix of dimension `J x J` detailing movement transition probabilities between active states.}
 }
 \value{
-A matrix representing the full state transition structure (for \code{load_Gamma} / \code{load_Gamma_ms})
-or the full observation probability structure (for \code{load_probObs} / \code{load_probObs_ms}).
+For single-state models (\code{load_Gamma}, \code{load_probObs}):
+\itemize{
+  \item \code{load_Gamma}: A `3 x 3` state-transition matrix.
+  \item \code{load_probObs}: A `3 x 2` observation probability matrix.
+}
+For multistate models (\code{load_Gamma_ms}, \code{load_probObs_ms}):
+\itemize{
+  \item \code{load_Gamma_ms}: A `(J+2) x (J+2)` state-transition matrix (where `J` is the number of active states).
+  \item \code{load_probObs_ms}: A `(J+2) x 2` observation probability matrix.
+}
 }
 \description{
-Convenience functions for loading parameter matrices for Jolly-Seber models
+Functions to generate the full transition matrix `Gamma` or observation probability
+matrix `P` for single-state and multistate Jolly-Seber models.
 }

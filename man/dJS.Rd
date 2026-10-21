@@ -5,12 +5,15 @@
 \alias{dJS_ms}
 \alias{dJS_binom}
 \alias{dJS_pois}
+\alias{dJS_mark}
 \alias{rJS_ms}
 \alias{rJS_binom}
 \alias{rJS_pois}
+\alias{rJS_mark}
 \alias{pstar_ms}
 \alias{pstar_binom}
 \alias{pstar_pois}
+\alias{pstar_mark}
 \title{Jolly-Seber distributions For nimble models}
 \usage{
 dJS_ms(x, init, probObs, probTrans, pstar, weight = 1, len = 1, log = 0)
@@ -30,51 +33,74 @@ dJS_pois(x, init, rate, probTrans, pstar, weight = 1, len = 0, log = 0)
 rJS_pois(n, init, rate, probTrans, pstar = 0, weight = 1, len)
 
 pstar_pois(init, rate, probTrans, len)
+
+dJS_mark(
+  x,
+  mark,
+  init,
+  prob,
+  probTrans,
+  pstar,
+  knots,
+  sigma_knot,
+  len = 0,
+  log = 0
+)
+
+rJS_mark(n, mark, init, prob, probTrans, pstar, knots, sigma_knot, len = 0)
+
+pstar_mark(init, mark, prob, probTrans, knots, sigma_knot, len)
 }
 \arguments{
-\item{x}{In dividual capture history}
+\item{x}{Vector of individual capture history (length `K`).}
 
-\item{init}{A vector of initial state probability vectors.}
+\item{init}{Vector of initial state probabilities at time `t = 1` of length `J+2`
+(where `J` is the number of intermediate active states, plus 1 initial unentered and 1 final exited state).}
 
-\item{probObs}{Time-dependent 3D array of observation probabilities.  First
-two dimensions of `probObs` are of size x (number of possible system states)
-x (number of possible observation classes) and the third dimension is the
-number of occasions. `probObs[i, j ,t]` is the probability that an individual
-in the ith latent state is recorded as being in the jth detection state at
-time t.}
+\item{probObs}{Time-dependent 3D array of observation probabilities. First
+two dimensions of `probObs` are of size (number of possible system states)
+`x` (number of possible observation classes) and the third dimension is the
+number of occasions. `probObs[i, j, t]` is the probability that an individual
+in the `i`th latent state is recorded as being in the `j`th detection state at
+time `t`.}
 
-\item{probTrans}{Time-dependent array of system state transition
-probabilities. Dimension of `probTrans` is (number of possible system states)
-x (number of possible system states) x (number of occasions).
-`probTrans[i,j,t]` is the probability that an individual truly in state i at
-time t will be in state j at time t+1.}
+\item{probTrans}{Time-dependent 3D array of system state transition probabilities
+with dimensions `(J+2) x (J+2) x K` (where `J+2` is the total number of system states and `K` is number of occasions).
+`probTrans[r, s, t]` is the probability of transitioning from state `r` at time `t` to state `s` at time `t+1`.}
 
 \item{pstar}{Overall probability of detection. Calculated using the `pstar_**`
 functions in nimble model code.}
 
 \item{weight}{The number of times the capture history occurs in the full data
-set of capture histories.}
+set of capture histories. Default is 1.}
 
-\item{len}{Length of `x`}
+\item{len}{Length of sequence `x` (`K`).}
 
-\item{log}{Logical. Return log-distribution.}
+\item{log}{Logical; if `TRUE`, log-probabilities/densities are returned.}
 
-\item{n}{number of random draws, each returning a vector of length `len`.
+\item{n}{Number of random draws, each returning a vector of length `len`.
 Currently only `n = 1` is supported, but the argument exists for
 standardization of `rJS_**` functions.}
 
-\item{prob}{For `dJS_binom` this is a 2d array that is (number of occasions)
-x (number of states) which contains the probability of detection for each
-state at time t. For a standard robust design there are 3 states: prior to
-entry, entered, and exited. In this case the first and third column would
-contain all 0s.}
+\item{prob}{For `dJS_binom`, a 2D array (`K x J`) containing detection probabilities
+for each intermediate/active state `J` at time `t`.}
 
-\item{size}{A vector of the number of secondary occasions for each primary
-occasion in a robust design.}
+\item{size}{Vector of the number of secondary occasions for each primary
+occasion in a robust design (length `K`).}
 
-\item{rate}{A vector of detection rates for continuous-time secondary
-occasions in `dJS_pois`. This should be proportional to the interval of time
-each secondary occasion was executed.}
+\item{rate}{2D array (`K x J`) containing Poisson detection rates for each
+intermediate/active state `J` at time `t`.}
+
+\item{mark}{Vector of continuous observations/marks across time (length `K`).}
+
+\item{knots}{Vector of knot locations/means corresponding to each intermediate state `J` (length `J`).}
+
+\item{sigma_knot}{Standard deviation around knot locations.}
+}
+\value{
+For `dJS_*`, the likelihood (or log-likelihood if `log = TRUE`) evaluated as a numeric scalar.
+For `rJS_*`, a numeric vector of generated capture histories of length `len`.
+For `pstar_*`, a numeric scalar representing the overall detection probability.
 }
 \description{
 \code{dJS_ms} provides multistate Jolly-Seber (JS) distributions, \code{dJS_binom} provides binomial JS

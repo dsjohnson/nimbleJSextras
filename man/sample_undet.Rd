@@ -5,47 +5,48 @@
 \alias{sample_undet_ms}
 \alias{sample_undet_binom}
 \alias{sample_undet_pois}
-\title{Sample states for undetected (not captured) individuals}
+\alias{sample_undet_mark}
+\title{Sample latent states for undetected (unobserved) individuals in Jolly-Seber models}
 \usage{
 sample_undet_ms(n = 1, init, probObs, probTrans)
 
 sample_undet_binom(n = 1, init, prob, size, probTrans)
 
 sample_undet_pois(n = 1, init, rate, probTrans)
+
+sample_undet_mark(n = 1, init, prob, probTrans)
 }
 \arguments{
-\item{n}{Integer number of individuals to generate samples. This returns a
-`n` x (number of occasions) matrix of sampled states for individuals that
-were never captured.}
+\item{n}{Integer number of undetected individuals to simulate.}
 
-\item{init}{A vector of initial state probabilities}
+\item{init}{Vector of initial state probabilities at time `t = 1` of length `J+2`
+(where `J` is the number of intermediate active states, plus 1 initial unentered and 1 final exited state).}
 
-\item{probObs}{Time-dependent 3D array of observation probabilities.  First
-two dimensions of `probObs` are of size x (number of possible system states)
-x (number of possible observation classes) and the third dimension is the
-number of occasions. `probObs[i, j ,t]` is the probability that an individual
-in the ith latent state is recorded as being in the jth detection state at
-time t.}
+\item{probObs}{Time-dependent 3D array of observation probabilities. First
+two dimensions of `probObs` are of size `(J+2) x O` (`O` = number of observation states)
+and the third dimension is `K`.}
 
-\item{probTrans}{Time-dependent array of system state transition
-probabilities. Dimension of `probTrans` is (number of possible system states)
-x (number of possible system states) x (number of occasions).
-`probTrans[i,j,t]` is the probability that an individual truly in state i at
-time t will be in state j at time t+1.}
+\item{probTrans}{Time-dependent 3D array of system state transition probabilities
+with dimensions `(J+2) x (J+2) x K`.
+`probTrans[r, s, t]` is the probability of transitioning from state `r` at time `t` to state `s` at time `t+1`.}
 
-\item{prob}{For `dJS_binom` this is a 2d array that is (number of occasions)
-x (number of states) which contains the probability of detection for each
-state at time t. For a standard robust design there are 3 states: prior to
-entry, entered, and exited. In this case the first and third column would
-contain all 0s.}
+\item{prob}{2D array (`K x J`) containing detection probabilities for each
+intermediate/active state `J` at time `t`.}
 
-\item{size}{A vector of the number of secondary occasions for each primary
-occasion in a robust design.}
+\item{size}{Vector of sizes (number of trials) for the binomial observation at each primary occasion (length `K`).}
 
-\item{rate}{A vector of detection rates for continuous-time secondary
-occasions in `dJS_pois`. This should be proportional to the interval of time
-each secondary occasion was executed.}
+\item{rate}{2D array (`K x J`) containing Poisson detection rates for each
+intermediate/active state `J` at time `t`.}
+}
+\value{
+A matrix of dimension `(J+2) x K` containing the count of undetected individuals
+in each system state across all occasions `K`.
+
+-----------------------------------------------------------------------------
+Multistate JS
+-----------------------------------------------------------------------------
 }
 \description{
-Sample states for undetected (not captured) individuals
+Forward-filtering backward-sampling functions to simulate state trajectories
+for individuals that were never observed in the capture-recapture study.
 }
