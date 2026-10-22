@@ -146,6 +146,35 @@ sim_js_list <- nimbleList(
     )
 
 
+    registerDistributions(list(
+      dJSCond_ms = list(
+        BUGSdist = "dJSCond_ms(obs, init, probObs, probTrans)",
+        Rdist = "dJSCond_ms(obs, init, probObs, probTrans)",
+        discrete = TRUE,
+        types = c('value = double(1)',
+                  'obs = double(1)',
+                  'init = double(1)',
+                  'probObs = double(3)',
+                  'probTrans = double(3)'),
+        mixedSizes = TRUE,
+        pqAvail = FALSE)), verbose = FALSE
+    )
+
+    registerDistributions(list(
+      dJSUndet_ms = list(
+        BUGSdist = "dJSUndet_ms(nu, init, probObs, probTrans)",
+        Rdist = "dJSUndet_ms(nu, init, probObs, probTrans)",
+        discrete = TRUE,
+        types = c('value = double(2)',
+                  'nu = double(0)',
+                  'init = double(1)',
+                  'probObs = double(3)',
+                  'probTrans = double(3)'),
+        mixedSizes = TRUE,
+        pqAvail = FALSE)), verbose = FALSE
+    )
+
+
 
   })
 
