@@ -42,26 +42,53 @@ dhmm_binom <- nimbleFunction(
                  prob = double(2),
                  size = double(1),
                  probTrans = double(3),
-                 len = integer(default=0),## length of x (needed as a separate param for rDHMMo_binom)
+                 len = integer(default=0), ## length of x
                  log = integer(default = 0)) {
     returnType(double())
-    pi <- init # State probabilities at time t=1
-    logL <- 0
+    logL <- 0.0
     K <- length(x)
     J <- dim(prob)[2]
-    n_states <- J+2
-    alpha <- pi
-    pt <- nimNumeric(value = 0.0, length = n_states)
+    n_states <- dim(probTrans)[1]
+    alpha <- init
+    Pdiag <- nimNumeric(value = 0.0, length = n_states)
+
     for (t in 1:K) {
-      ### Observation distribution -----------
-      pt[2:(J+1)] <-  prob[t,]
-      Pdiag <- dbinom(x[t], size[t], pt, log=0)
-      ### ------------------------------------
-      Zpi <- Pdiag * alpha
-      sumZpi <- sum(Zpi)
-      logL <- logL + log(sumZpi)
-      if (t < K) alpha <- ((Zpi %*% probTrans[,,t]) / sumZpi)[1, ]
+      xt <- x[t]
+      Rt <- size[t]
+      # if (xt == 0) {
+      #   Pdiag[1] <- 1.0
+      #   Pdiag[n_states] <- 1.0
+      # } else {
+      #   Pdiag[1] <- 0.0
+      #   Pdiag[n_states] <- 0.0
+      # }
+      # ln_binom_coef <- 0.0
+      # if (xt > 0 & xt < Rt) {
+      #   ln_binom_coef <- lgamma(Rt + 1.0) - lgamma(xt + 1.0) - lgamma(Rt - xt + 1.0)
+      # } else{
+      #   ln_binom_coef <- 0.0
+      # }
+      for (k in 1:n_states) {
+        # p_jt <- prob[t, j]
+        # ln_dens <- ln_binom_coef + xt * log(p_jt) + (Rt - xt) * log(1.0 - p_jt)
+        if(k==1 | k==n_states){
+          Pdiag[k] <-  dbinom(xt, Rt, 0.0, log=FALSE)
+        } else {
+          Pdiag[k] <-  dbinom(xt, Rt, prob[t,k-1], log=FALSE)
+        }
+      }
+      alphaP <- alpha * Pdiag
+      sum_alphaP <- sum(alphaP)
+
+      if (sum_alphaP == 0.0) {
+        if (log) return(-Inf)
+        return(0.0)
+      }
+
+      logL <- logL + log(sum_alphaP)
+      if (t < K) alpha <- ((alphaP %*% probTrans[, , t]) /  sum_alphaP)[1, ]
     }
+
     if (log) return(logL)
     return(exp(logL))
   }

@@ -97,7 +97,7 @@ sample_undet_binom <- nimble::nimbleFunction(
     Pdiag <- nimNumeric(value = 1.0, length = n_states)
     # ---- Forward Pass ----
     for (t in 1:K) {
-      Pdiag[2:(J+1)] <- (1-prob[t,])^size[t]
+      for(k in 1:J) Pdiag[k+1] <- (1-prob[t,k])^size[t]
       if(t == 1){
         alpha[t, ] <- init * Pdiag
       } else{

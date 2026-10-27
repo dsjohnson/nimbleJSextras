@@ -90,11 +90,34 @@ sample_det_binom <- nimble::nimbleFunction(
     # Forward probabilities
     alpha <- matrix(0, nrow=K, ncol=n_states)
     sampled_states <- numeric(K)  # To store sampled states
-    pt <- nimNumeric(value = 0.0, length = n_states)
+    Pdiag <- nimNumeric(value = 0.0, length = n_states)
     # ---- Forward Pass ----
     for (t in 1:K) {
-      pt[2:(J+1)] <-  prob[t,]
-      Pdiag <- dbinom(x[t], size[t], pt, log=0)
+      xt <- x[t]
+      Rt <- size[t]
+      # if (xt == 0) {
+      #   Pdiag[1] <- 1.0
+      #   Pdiag[n_states] <- 1.0
+      # } else {
+      #   Pdiag[1] <- 0.0
+      #   Pdiag[n_states] <- 0.0
+      # }
+      # ln_binom_coef <- 0.0
+      # if (xt > 0 & xt < Rt) {
+      #   ln_binom_coef <- lgamma(Rt + 1.0) - lgamma(xt + 1.0) - lgamma(Rt - xt + 1.0)
+      # } else{
+      #   ln_binom_coef <- 0.0
+      # }
+      for (k in 1:n_states) {
+        # p_jt <- prob[t, j]
+        # ln_dens <- ln_binom_coef + xt * log(p_jt) + (Rt - xt) * log(1.0 - p_jt)
+        if(k==1 | k==n_states){
+          Pdiag[k] <-  dbinom(xt, Rt, 0.0)
+        } else {
+          Pdiag[k] <-  dbinom(xt, Rt, prob[t,k-1])
+        }
+      }
+      # for(k in 1:J) Pdiag[k+1] <- dbinom(x[t], size[t], prob[t,k], log=0)
       if(t ==1){
         alpha[t, ] <- init * Pdiag
       } else {
