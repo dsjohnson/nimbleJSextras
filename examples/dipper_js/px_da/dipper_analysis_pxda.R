@@ -17,7 +17,7 @@ K <- ncol(y.obs)
 #' -----------------------------------------------------------------------------
 #' Data augmentation
 #' -----------------------------------------------------------------------------
-n.aug <- 300  # choose augmented size (tune as needed)
+n.aug <- 1000  # choose augmented size (tune as needed)
 M <- n.obs + n.aug
 y_aug <- matrix(0, nrow = M, ncol = K)
 y_aug[1:n.obs, ] <- y.obs
@@ -76,9 +76,9 @@ pxda_code <- nimbleCode({
     }
   }
   # Derived quantities
-  Nsuper <- sum(w[1:M])
+  N <- sum(w[1:M])
   for(t in 1:K) {
-    N[t] <- sum(z[1:M, t] * w[1:M])
+    N_t[t] <- sum(z[1:M, t] * w[1:M])
   }
 })
 
@@ -114,7 +114,7 @@ conf <- configureMCMC(Rmodel,
                       monitors=c("p","mu_p","sig_p",
                                  "phi","mu_phi","sig_phi",
                                  "f", "mu_f","sig_f",
-                                 "psi","Nsuper", "N")
+                                 "psi","N", "N_t")
                       )
 Rmcmc <- buildMCMC(conf)
 Cmodel <- compileNimble(Rmodel)
@@ -124,7 +124,7 @@ Cmcmc <- compileNimble(Rmcmc, project = Rmodel)
 #' Check initial convergence
 #' -----------------------------------------------------------------------------
 # st <- Sys.time()
-# set.seed(8675309)
+# set.seed(42)
 # samples <- runMCMC(Cmcmc, niter = 5000, nburnin = 0, nchains = 3,
 #                        thin = 1, samplesAsCodaMCMC = TRUE, progress = TRUE)
 # gelman.diag(samples, autoburnin = FALSE)
@@ -133,7 +133,7 @@ Cmcmc <- compileNimble(Rmcmc, project = Rmodel)
 #' -----------------------------------------------------------------------------
 #' Run full MCMC
 #' -----------------------------------------------------------------------------
-set.seed(8675309)
+set.seed(42)
 st <- Sys.time()
 samples <- runMCMC(Cmcmc, niter = 60000, nburnin = 10000, nchains = 1,
                        thin = 1, samplesAsCodaMCMC = TRUE, progress = TRUE)
