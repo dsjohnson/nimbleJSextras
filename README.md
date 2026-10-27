@@ -14,13 +14,13 @@ It is also be directly installed from GitHub using the `remotes` package
 with the command:
 
 ``` r
-remotes::install_github('dsjohnson/nimbleJSextras')
+remotes::install_github('dsjohnson/nimbleJSextras/nimbleJSextras')
 ```
 
 # Example analyses
 
 There are examples of the Jolly-Seber model inference using this package
-available [here](https://github.com/dsjohnson/nimbleJSextras_examples).
+available [here](https://github.com/dsjohnson/examples).
 
 # Disclaimer
 
