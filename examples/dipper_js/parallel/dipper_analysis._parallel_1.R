@@ -64,7 +64,7 @@ js_mcmc <- buildMCMC(js_model,
                      monitors=c("p","mu_p","sig_p",
                                 "phi","mu_phi","sig_phi",
                                 "f", "mu_f","sig_f", "xi",
-                                "lambda","Nsuper", "nu"))
+                                "lambda","N", "Nu"))
 
 # Compile first stage sampler
 c_js_mcmc <- compileNimble(js_mcmc)
@@ -75,7 +75,7 @@ c_js_mcmc <- compileNimble(js_mcmc)
 #' -----------------------------------------------------------------------------
 
 st <- Sys.time()
-set.seed(8675309)
+set.seed(42)
 samples <- runMCMC(c_js_mcmc, niter = 60000, nburnin = 10000, nchains = 1,
                    thin = 1, samplesAsCodaMCMC = TRUE, progress = TRUE)
 et <- Sys.time()
@@ -91,9 +91,9 @@ lambda <- mcmc(samples_list$lambda)
 summary(lambda)
 HPDinterval(lambda)
 
-Nsuper <- mcmc(samples_list$Nsuper)
-summary(Nsuper)
-HPDinterval(Nsuper)
+Nsuper <- mcmc(samples_list$N)
+summary(N)
+HPDinterval(N)
 
 f <- mcmc(samples_list$f)
 summary(f)

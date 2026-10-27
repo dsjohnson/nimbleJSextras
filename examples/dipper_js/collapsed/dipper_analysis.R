@@ -50,11 +50,11 @@ mcmcConf <- configureMCMC(js_model,
                           monitors=c("p","mu_p","sig_p",
                                      "phi","mu_phi","sig_phi",
                                      "f", "mu_f","sig_f",
-                                     "lambda","Nsuper", "N"))
+                                     "lambda","N", "N_t"))
 # Explicitly configure z and nu_t as predictive simulation samplers
-mcmcConf$removeSamplers(c('z', 'nu_t'))
+mcmcConf$removeSamplers(c('z', 'Nu_t'))
 mcmcConf$addSampler(target = 'z', type = 'sampler_posterior_predictive')
-mcmcConf$addSampler(target = 'nu_t', type = 'sampler_posterior_predictive')
+mcmcConf$addSampler(target = 'Nu_t', type = 'sampler_posterior_predictive')
 
 # Build and compile
 js_mcmc <- buildMCMC(mcmcConf)
@@ -66,7 +66,7 @@ c_js_mcmc <- compileNimble(js_mcmc)
 #' Check initial convergence
 #' -----------------------------------------------------------------------------
 # st <- Sys.time()
-# set.seed(8675309)
+# set.seed(42)
 # samples <- runMCMC(c_js_mcmc, niter = 5000, nburnin = 0, nchains = 3,
 #                    thin = 1, samplesAsCodaMCMC = TRUE, progress = TRUE)
 # gelman.diag(samples, autoburnin = FALSE)
@@ -76,7 +76,7 @@ c_js_mcmc <- compileNimble(js_mcmc)
 #' Run full MCMC
 #' -----------------------------------------------------------------------------
 
-set.seed(8675309)
+set.seed(42)
 st <- Sys.time()
 samples <- runMCMC(c_js_mcmc, niter = 60000, nburnin = 10000, nchains = 1,
                    thin = 1, samplesAsCodaMCMC = TRUE, progress = TRUE)
@@ -94,9 +94,9 @@ HPDinterval(samples)
 
 # Yearly abundance estimate
 Ndf <- data.frame(
-  year = 1:ncol(x), est=colMeans(samples_list$N), 
-  se=apply(samples_list$N, 2, sd),
-  hpd = HPDinterval(mcmc(samples_list$N))
+  year = 1:ncol(x), est=colMeans(samples_list$N_t), 
+  se=apply(samples_list$N_t, 2, sd),
+  hpd = HPDinterval(mcmc(samples_list$N_t))
 )
 print(Ndf)
 

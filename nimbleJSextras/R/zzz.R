@@ -219,11 +219,11 @@ sim_js_list <- nimbleList(
     # -------------------------------------------------------------------------
     registerDistributions(list(
       dJSUndet_ms = list(
-        BUGSdist = "dJSUndet_ms(nu, init, probObs, probTrans)",
-        Rdist = "dJSUndet_ms(nu, init, probObs, probTrans)",
+        BUGSdist = "dJSUndet_ms(Nu, init, probObs, probTrans)",
+        Rdist = "dJSUndet_ms(Nu, init, probObs, probTrans)",
         discrete = TRUE,
         types = c('value = double(2)',
-                  'nu = double(0)',
+                  'Nu = double(0)',
                   'init = double(1)',
                   'probObs = double(3)',
                   'probTrans = double(3)'),
@@ -233,11 +233,11 @@ sim_js_list <- nimbleList(
 
     registerDistributions(list(
       dJSUndet_binom = list(
-        BUGSdist = "dJSUndet_binom(nu, init, prob, size, probTrans)",
-        Rdist = "dJSUndet_binom(nu, init, prob, size, probTrans)",
+        BUGSdist = "dJSUndet_binom(Nu, init, prob, size, probTrans)",
+        Rdist = "dJSUndet_binom(Nu, init, prob, size, probTrans)",
         discrete = TRUE,
         types = c('value = double(2)',
-                  'nu = double(0)',
+                  'Nu = double(0)',
                   'init = double(1)',
                   'prob = double(2)',
                   'size = double(1)',
@@ -248,11 +248,11 @@ sim_js_list <- nimbleList(
 
     registerDistributions(list(
       dJSUndet_pois = list(
-        BUGSdist = "dJSUndet_pois(nu, init, rate, probTrans)",
-        Rdist = "dJSUndet_pois(nu, init, rate, probTrans)",
+        BUGSdist = "dJSUndet_pois(Nu, init, rate, probTrans)",
+        Rdist = "dJSUndet_pois(Nu, init, rate, probTrans)",
         discrete = TRUE,
         types = c('value = double(2)',
-                  'nu = double(0)',
+                  'Nu = double(0)',
                   'init = double(1)',
                   'rate = double(2)',
                   'probTrans = double(3)'),
@@ -262,11 +262,11 @@ sim_js_list <- nimbleList(
 
     registerDistributions(list(
       dJSUndet_mark = list(
-        BUGSdist = "dJSUndet_mark(nu, init, prob, probTrans)",
-        Rdist = "dJSUndet_mark(nu, init, prob, probTrans)",
+        BUGSdist = "dJSUndet_mark(Nu, init, prob, probTrans)",
+        Rdist = "dJSUndet_mark(Nu, init, prob, probTrans)",
         discrete = TRUE,
         types = c('value = double(2)',
-                  'nu = double(0)',
+                  'Nu = double(0)',
                   'init = double(1)',
                   'prob = double(2)',
                   'probTrans = double(3)'),

@@ -89,10 +89,10 @@ js_code <- nimbleCode({
   #' Code below is for the posterior predicted abundance
   #' ---------------------------------------------------------------------------
   
-  nu ~ dpois(lambda*(1-pstar))
-  Nsuper <- n + nu
-  nu_t[1:n_states, 1:K] ~ dJSUndet_ms(
-    nu = nu,
+  Nu ~ dpois(lambda*(1-pstar))
+  N <- n + Nu
+  Nu_t[1:n_states, 1:K] ~ dJSUndet_ms(
+    Nu = Nu,
     init = pi[1:n_states],
     probObs = Pmats[1:n_states, 1:O, 1:K],
     probTrans = Gamma[1:n_states, 1:n_states, 1:(K-1)]
@@ -108,6 +108,6 @@ js_code <- nimbleCode({
   }
   # Calculate occasion-specific abundance (State 2 = Avaialble)
   for(t in 1:K) {
-    N[t] <- nu_t[2, t] + sum(z[1:nobs, t] == 2) 
+    N_t[t] <- Nu_t[2, t] + sum(z[1:nobs, t] == 2) 
   }
 })

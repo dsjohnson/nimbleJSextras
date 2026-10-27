@@ -12,7 +12,7 @@ setwd(here("dipper_js","parallel"))
 
 # Read in MCMC sample from stage I
 load("dipper_stage1_sample.RData")
-par_mcmc_list <- samples_list[c("xi","phi","p","nu")]
+par_mcmc_list <- samples_list[c("xi","phi","p","Nu")]
 
 # source utility code to execute parallel sampling with nimble
 source("helper/predict_abundance.R")
@@ -21,9 +21,6 @@ source("helper/predict_abundance.R")
 workers <- parallel::detectCores() - 2
 total_iters <- dim(par_mcmc_list$xi)[1]
 chunk_indices <- split(1:total_iters, cut(1:total_iters, workers))
-
-# Raise the limit for the transfer
-# options(future.globals.maxSize = 1500 * 1024^2)
 
 # Create parallel sessions
 plan(multisession, workers=workers) # Use multicore on Mac/Linux for faster shared memory
@@ -48,7 +45,7 @@ results <- foreach(j = 1:length(chunk_indices),
     xi = par_mcmc_list$xi[idx, , drop = FALSE],
     phi = par_mcmc_list$phi[idx, , drop = FALSE],
     p = par_mcmc_list$p[idx, , drop = FALSE],
-    nu = par_mcmc_list$nu[idx],
+    Nu = par_mcmc_list$Nu[idx],
     x = x
   )
   N_avail
@@ -59,21 +56,19 @@ et-st
 plan("sequential")
 
 # Extract and stack N_avail
-N_avail <- do.call(rbind, results) %>% mcmc()
+N_t <- do.call(rbind, results) %>% mcmc()
 
 ###
 
 # Yearly abundance of reproductive females
-Ndf <- data.frame(year = 1:ncol(x), est=colMeans(N_avail), hpd = HPDinterval(mcmc(N_avail)))
+Ndf <- data.frame(year = 1:ncol(x), est=colMeans(N_t), hpd = HPDinterval(mcmc(N_t)))
 ggplot(Ndf) + geom_point(aes(x=year, y=est), size=3) +
   geom_errorbar(aes(x=year, ymin=hpd.lower, ymax=hpd.upper), width=0.2) +
   geom_path(aes(x=year, y=est)) + ylab("Abundance") + xlab("Year") +
   theme_bw()
 
-ggsave("dipper_Nt.png", dpi=600, width=6.5, height=4)
-ggsave("dipper_Nt.pdf", width=6.5, height=4)
+# ggsave("dipper_Nt.png", dpi=600, width=6.5, height=4)
+# ggsave("dipper_Nt.pdf", width=6.5, height=4)
 
-summary(mcmc(N_avail))
-HPDinterval(mcmc(N_avail))
 
 

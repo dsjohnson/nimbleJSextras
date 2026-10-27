@@ -11,7 +11,7 @@
 #'
 #' @param x Matrix of sampled unobserved latent states across intermediate states and occasions (dimension J x K).
 #' @param n Integer number of draws to simulate (defaults to 1).
-#' @param nu Total number of unobserved individuals in the superpopulation.
+#' @param Nu Total number of unobserved individuals in the superpopulation.
 #' @param init Vector of initial state distribution probabilities.
 #' @param probObs 3D array of state-to-observation probabilities (n_states x O x K).
 #' @param probTrans 3D array of state transition probability matrices ((J+2) x (J+2) x (K-1)).
@@ -31,7 +31,7 @@
 #' @rdname dJSUndet
 dJSUndet_ms <- nimbleFunction(
   run = function(x = double(2),
-                 nu = double(0),
+                 Nu = double(0),
                  init = double(1),
                  probObs = double(3),
                  probTrans = double(3),
@@ -47,13 +47,13 @@ dJSUndet_ms <- nimbleFunction(
 #' @rdname dJSUndet
 rJSUndet_ms <- nimbleFunction(
   run = function(n = integer(0, default = 1),
-                 nu = double(0),
+                 Nu = double(0),
                  init = double(1),
                  probObs = double(3),
                  probTrans = double(3)) {
     returnType(double(2))
     sampled_nu <- sample_undet_ms(
-      n = nu,
+      n = Nu,
       init = init,
       probObs = probObs,
       probTrans = probTrans
@@ -70,7 +70,7 @@ rJSUndet_ms <- nimbleFunction(
 #' @rdname dJSUndet
 dJSUndet_binom <- nimbleFunction(
   run = function(x = double(2),
-                 nu = double(0),
+                 Nu = double(0),
                  init = double(1),
                  prob = double(2),
                  size = double(1),
@@ -87,14 +87,14 @@ dJSUndet_binom <- nimbleFunction(
 #' @rdname dJSUndet
 rJSUndet_binom <- nimbleFunction(
   run = function(n = integer(0, default = 1),
-                 nu = double(0),
+                 Nu = double(0),
                  init = double(1),
                  prob = double(2),
                  size = double(1),
                  probTrans = double(3)) {
     returnType(double(2))
     sampled_nu <- sample_undet_binom(
-      n = nu,
+      n = Nu,
       init = init,
       prob = prob,
       size = size,
@@ -112,7 +112,7 @@ rJSUndet_binom <- nimbleFunction(
 #' @rdname dJSUndet
 dJSUndet_pois <- nimbleFunction(
   run = function(x = double(2),
-                 nu = double(0),
+                 Nu = double(0),
                  init = double(1),
                  rate = double(2),
                  probTrans = double(3),
@@ -128,13 +128,13 @@ dJSUndet_pois <- nimbleFunction(
 #' @rdname dJSUndet
 rJSUndet_pois <- nimbleFunction(
   run = function(n = integer(0, default = 1),
-                 nu = double(0),
+                 Nu = double(0),
                  init = double(1),
                  rate = double(2),
                  probTrans = double(3)) {
     returnType(double(2))
     sampled_nu <- sample_undet_pois(
-      n = nu,
+      n = Nu,
       init = init,
       rate = rate,
       probTrans = probTrans
@@ -151,7 +151,7 @@ rJSUndet_pois <- nimbleFunction(
 #' @rdname dJSUndet
 dJSUndet_mark <- nimbleFunction(
   run = function(x = double(2),
-                 nu = double(0),
+                 Nu = double(0),
                  init = double(1),
                  prob = double(2),
                  probTrans = double(3),
@@ -167,13 +167,13 @@ dJSUndet_mark <- nimbleFunction(
 #' @rdname dJSUndet
 rJSUndet_mark <- nimbleFunction(
   run = function(n = integer(0, default = 1),
-                 nu = double(0),
+                 Nu = double(0),
                  init = double(1),
                  prob = double(2),
                  probTrans = double(3)) {
     returnType(double(2))
     sampled_nu <- sample_undet_mark(
-      n = nu,
+      n = Nu,
       init = init,
       prob = prob,
       probTrans = probTrans

@@ -12,26 +12,26 @@
 \alias{rJSUndet_mark}
 \title{Marked JS Unobserved Abundance Latent State Distributions}
 \usage{
-dJSUndet_ms(x, nu, init, probObs, probTrans, log = 0)
+dJSUndet_ms(x, Nu, init, probObs, probTrans, log = 0)
 
-rJSUndet_ms(n = 1, nu, init, probObs, probTrans)
+rJSUndet_ms(n = 1, Nu, init, probObs, probTrans)
 
-dJSUndet_binom(x, nu, init, prob, size, probTrans, log = 0)
+dJSUndet_binom(x, Nu, init, prob, size, probTrans, log = 0)
 
-rJSUndet_binom(n = 1, nu, init, prob, size, probTrans)
+rJSUndet_binom(n = 1, Nu, init, prob, size, probTrans)
 
-dJSUndet_pois(x, nu, init, rate, probTrans, log = 0)
+dJSUndet_pois(x, Nu, init, rate, probTrans, log = 0)
 
-rJSUndet_pois(n = 1, nu, init, rate, probTrans)
+rJSUndet_pois(n = 1, Nu, init, rate, probTrans)
 
-dJSUndet_mark(x, nu, init, prob, probTrans, log = 0)
+dJSUndet_mark(x, Nu, init, prob, probTrans, log = 0)
 
-rJSUndet_mark(n = 1, nu, init, prob, probTrans)
+rJSUndet_mark(n = 1, Nu, init, prob, probTrans)
 }
 \arguments{
 \item{x}{Matrix of sampled unobserved latent states across intermediate states and occasions (dimension J x K).}
 
-\item{nu}{Total number of unobserved individuals in the superpopulation.}
+\item{Nu}{Total number of unobserved individuals in the superpopulation.}
 
 \item{init}{Vector of initial state distribution probabilities.}
 

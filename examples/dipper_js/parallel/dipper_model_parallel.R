@@ -83,6 +83,6 @@ js_code <- nimbleCode({
   }
   n ~ dpois(lambda*pstar)
 
-  nu ~ dpois(lambda*(1-pstar))
-  Nsuper <- n + nu
+  Nu ~ dpois(lambda*(1-pstar))
+  N <- n + Nu
 })
