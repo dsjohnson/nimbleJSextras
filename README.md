@@ -20,7 +20,8 @@ remotes::install_github('dsjohnson/nimbleJSextras/nimbleJSextras')
 # Example analyses
 
 There are examples of the Jolly-Seber model inference using this package
-available [here](https://github.com/dsjohnson/examples).
+available
+[here](https://github.com/dsjohnson/nimbleJSextras/tree/master/examples).
 
 # Disclaimer
 
