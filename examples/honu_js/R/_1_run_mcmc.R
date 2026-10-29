@@ -9,9 +9,9 @@ library(here)
 
 setwd(here("honu_js"))
 
-source(file.path("helper","make_hmm_mats.R"))
+source(file.path("R","make_hmm_mats.R"))
 
-honu_ch <- read_csv("honu_ch.csv") %>% as.matrix()
+honu_ch <- read_csv(file.path("raw_data","honu_ch.csv")) %>% as.matrix()
 
 # 2013 was not surveyed; 2015 no new perm IDs put out
 surv <- colnames(honu_ch)
@@ -23,7 +23,7 @@ K <- ncol(honu_ch)
 n <- nrow(honu_ch)
 m <- 5
 
-source("honu_model.R")
+source(file.path("R", "honu_model.R"))
 
 js_model <- nimbleModel(
   code = js_code,
@@ -32,29 +32,31 @@ js_model <- nimbleModel(
     nobs_u=nrow(ch_collapsed$unique_ch)
   ),
   data = list(
-    ux=ch_collapsed$unique_ch, w=ch_collapsed$w, surv=surv
+    ux=ch_collapsed$unique_ch, w=ch_collapsed$w, n=n, surv=surv
   ),
   inits = list(
-    eps_rho=qlogis(rep(1/K, K)), eps_phi=qlogis(0.92), eps_tau = rep(0, m), eps_p=rep(qlogis(0.9),K-1), eps_a=rep(0,K),
+    eps_rho=qlogis(rep(1/K, K)), eps_phi=qlogis(0.92), eps_tau = rep(0, m), 
+    eps_p=rep(qlogis(0.9),K-1), eps_eta=rep(0,K),
     lambda=2*n
   )
 )
 mcmcConf <- configureMCMC(js_model,
                           useConjugacy = FALSE,
                           monitors=c(
-                            "xi", "rho", "phi","p", "alpha", "tau",
-							"ft_pdf", "nu","Nsuper","lambda", "pstar"
+                            "xi", "rho", "phi","p", "eta", "tau",
+                            "ft_pdf", "Nu","N","lambda", "pstar"
                           ))
 mcmcConf$removeSamplers('eps_rho')
 mcmcConf$addSampler(target = 'eps_rho', type = 'RW_block')
 mcmcConf$removeSamplers('eps_tau')
 mcmcConf$addSampler(target = 'eps_tau', type = 'RW_block')
-mcmcConf$removeSamplers('eps_a')
-mcmcConf$addSampler(target = 'eps_a', type = 'RW_block')
+mcmcConf$removeSamplers('eps_eta')
+mcmcConf$addSampler(target = 'eps_eta', type = 'RW_block')
 mcmcConf$removeSamplers('eps_p')
 mcmcConf$addSampler(target = 'eps_p', type = 'RW_block')
 mcmcConf$removeSamplers('lambda')
 mcmcConf$addSampler(target = 'lambda', type = 'conjugate')
+
 js_mcmc <- buildMCMC(mcmcConf)
 
 # Compile model and MCMC sampler
@@ -62,13 +64,14 @@ c_js_model <- compileNimble(js_model)
 c_js_mcmc <- compileNimble(js_mcmc)
 
 
-set.seed(8675309)
+set.seed(42)
 st <- Sys.time()
-samples <- runMCMC(c_js_mcmc, niter = 70000, nburnin = 20000, nchains = 1,
+samples <- runMCMC(c_js_mcmc, niter = 7000, nburnin = 2000, nchains = 1,
                    thin = 1, samplesAsCodaMCMC = TRUE, progress = TRUE)
 et <- Sys.time()
 et-st
 
 samples_list <- as.list(c_js_mcmc$mvSamples)
-save(samples_list, honu_ch, ch_collapsed, surv, file="honu_mcmc_sample.RData")
+save(samples_list, honu_ch, ch_collapsed, surv, 
+     file=file.path("processed_data_samples", "honu_mcmc_sample.RData"))
 

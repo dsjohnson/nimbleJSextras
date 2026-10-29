@@ -50,13 +50,13 @@ js_code <- nimbleCode({
   #' Detection
   #' ---------------------------------------------------------------------------
   p[1] <- 0
-  eps_a[1] ~ dt(mu=0, sigma=1.52, df=6)
-  logit(alpha[1]) <- eps_a[1]
+  eps_eta[1] ~ dt(mu=0, sigma=1.52, df=6)
+  logit(eta[1]) <- eps_eta[1]
   for(t in 2:K){
     eps_p[t-1] ~ dt(mu=0, sigma=1.52, df=6)
     p[t] <- surv[t]*expit(eps_p[t-1])
-    eps_a[t] ~ dt(mu=0, sigma=1.52, df=6)
-    logit(alpha[t]) <- eps_a[t]
+    eps_eta[t] ~ dt(mu=0, sigma=1.52, df=6)
+    logit(eta[t]) <- eps_eta[t]
   }
 
   #' ---------------------------------------------------------------------------
@@ -68,11 +68,11 @@ js_code <- nimbleCode({
   }
 
   # pi
-  pi[1:n_states] <- make_honu_pi(xi_tilde[1], alpha[1], m)
+  pi[1:n_states] <- make_honu_pi(xi_tilde[1], eta[1], m)
 
   # Gamma
   for(t in 1:(K-1)){
-    Gamma[1:n_states, 1:n_states, t] <- make_honu_Gamma(xi_tilde[t+1], phi, alpha[t+1], p[t+1], tau[1:m])
+    Gamma[1:n_states, 1:n_states, t] <- make_honu_Gamma(xi_tilde[t+1], phi, eta[t+1], p[t+1], tau[1:m])
   }
 
   #' ---------------------------------------------------------------------------
@@ -106,7 +106,7 @@ js_code <- nimbleCode({
   #' ---------------------------------------------------------------------------
   #' Posterior predicted superpopulationn abundance
   #' ---------------------------------------------------------------------------
-  nu ~ dpois(lambda*(1-pstar))
-  Nsuper <- n+nu
+  Nu ~ dpois(lambda*(1-pstar))
+  N <- n+Nu
 
 })

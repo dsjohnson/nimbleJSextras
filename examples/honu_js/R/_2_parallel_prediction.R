@@ -13,8 +13,8 @@ library(cowplot)
 setwd(here("honu_js"))
 
 # Read in MCMC sample from stage I
-load("honu_mcmc_sample.RData")
-par_mcmc_list <- samples_list[c("xi","phi","tau","p","alpha","nu")]
+load(file.path("processed_data_samples", "honu_mcmc_sample.RData"))
+par_mcmc_list <- samples_list[c("xi","phi","tau","p","eta","Nu")]
 
 # Define number of cores and chunk size
 workers <- 10 #parallel::detectCores() - 2
@@ -41,20 +41,23 @@ results <- foreach(j = 1:length(chunk_indices),
   # We subset the input matrices inside the worker to save memory
   set.seed(seeds[j])
   # Source utility functions
-  source("helper/make_hmm_mats.R")
-  source("helper/predict_abundance.R")
-  idx <- chunk_indices[[j]]
+  source(file.path("R", "make_hmm_mats.R"))
+  source(file.path("R", "predict_abundance.R"))
+  
+  # compile predictive sampler on the local worker
   worker_pred <- compileNimble(predict_abundance)
-  pred <- worker_pred(
+  
+  idx <- chunk_indices[[j]]
+  N_t <- worker_pred(
     xi = par_mcmc_list$xi[idx, , drop = FALSE],
     phi = par_mcmc_list$phi[idx],
     tau = par_mcmc_list$tau[idx, , drop=FALSE],
     p = par_mcmc_list$p[idx, ,drop = FALSE],
-    alpha = par_mcmc_list$alpha[idx, ,drop = FALSE],
-    nu = par_mcmc_list$nu[idx],
+    eta = par_mcmc_list$eta[idx, ,drop = FALSE],
+    Nu = par_mcmc_list$Nu[idx],
     x = honu_ch
   )
-  pred$N_avail
+  N_t
 }
 
 et <- Sys.time()
@@ -62,7 +65,7 @@ et-st
 plan("sequential")
 
 # Extract and stack Yearly N_t sample
-N_avail <- do.call(rbind, results) %>% mcmc()
+N_t <- do.call(rbind, results) %>% mcmc()
 
 # Yearly abundance of reproductive females
 yr <- colnames(honu_ch) %>% str_remove("X") %>% as.numeric()
@@ -70,8 +73,8 @@ obs <- colSums((honu_ch==2) + (honu_ch==3))
 Ndf <- data.frame(
   year = yr,
   obs = obs,
-  est=round(colMeans(N_avail)),
-  hpd = HPDinterval(N_avail,0.9)) %>%
+  est=round(colMeans(N_t)),
+  hpd = HPDinterval(N_t,0.9)) %>%
   mutate(
     aaa=ifelse(year<1979, 0.25, 1)
   )
@@ -81,13 +84,13 @@ ggplot(Ndf) + geom_point(aes(x=year, y=est), alpha=Ndf$aaa, size=2) +
   # geom_path(aes(x=year, y=est, color=col)) +
   ylab(TeX(r"(Yearly abundance ($N_t$))")) + xlab("Year") +
   theme_bw()
-# ggsave("abund.png", dpi=600, width=6.5, height=4)
-# ggsave("abund.pdf", width=6.5, height=4)
+# ggsave(file.path("figures","abund.png"), dpi=600, width=6.5, height=4)
+# ggsave(file.path("figures","abund.pdf"), width=6.5, height=4)
 
 # Plot capture probabilities
 p <- mcmc(par_mcmc_list$p)[,-1]
-alpha <- mcmc(par_mcmc_list$alpha)
-p0 <- cbind(1,p)*alpha
+eta <- mcmc(par_mcmc_list$eta)
+p0 <- cbind(1,p)*eta
 pdf <- data.frame(
   year = yr,
   est1=colMeans(p0), hpd1 = HPDinterval(p0, prob=0.9),
@@ -101,8 +104,8 @@ ggplot(pdf) + geom_point(aes(x=year, y=est1), size=3, color="red") +
   # geom_path(aes(x=year, y=est2), color="blue") +
   ylab(TeX(r"(Capture probability ($p_t$))")) + xlab("Year") +
   theme_bw()
-# ggsave("capt_probs.png", dpi=600, width=6.5, height=4)
-# ggsave("capt_probs.pdf", width=6.5, height=4)
+# ggsave(file.path("figures","capt_probs.png"), dpi=600, width=6.5, height=4)
+# ggsave(file.path("figures","capt_probs.pdf"), width=6.5, height=4)
 
 
 # Phi estimate
@@ -130,8 +133,8 @@ ppp2 <- ggplot(xidf) + geom_point(aes(x=year, y=est), size=3) +
 
 ppp <- plot_grid(ppp1, ppp2, ncol=1, labels = "AUTO")
 print(ppp)
-# ggsave(ppp, filename="rho_entry_probs.png", dpi=600, width=6.5, height=6.5)
-# ggsave(ppp, filename="rho_entry_probs.pdf", width=6.5, height=6.5)
+# ggsave(ppp, filename=file.path("figures","rho_entry_probs.png"), dpi=600, width=6.5, height=6.5)
+# ggsave(ppp, filename=file.path("figures","rho_entry_probs.pdf"), width=6.5, height=6.5)
 
 # estimate and plot remigration interval
 ft <- mcmc(samples_list$ft_pdf)
@@ -143,8 +146,8 @@ ggplot(ftdf) +
   geom_ribbon(aes(x=Remig.interval, ymin=hpd.lower, ymax=hpd.upper), fill="gray") +
   geom_path(aes(x=Remig.interval, y=est)) + ylab("PDF") + xlab("Remigration interval") +
   theme_bw()
-# ggsave("remig_int.png", dpi=600, width=6.5, height=4)
-# ggsave("remig_int.pdf", width=6.5, height=4)
+# ggsave(file.path("figures","remig_int.png"), dpi=600, width=6.5, height=4)
+# ggsave(file.path("figures","remig_int.pdf"), width=6.5, height=4)
 
 
 # Estimate average remigration interval
@@ -154,7 +157,7 @@ summary(ft_e)
 HPDinterval(ft_e)
 hist(ft_e)
 
-# save(N_avail, file="honu_abund_mcmc_sample.RData")
+# save(N_avail, file=file.path("processed_data_samples","honu_abund_mcmc_sample.RData"))
 
 
 
