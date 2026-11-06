@@ -142,7 +142,7 @@ dhmm_pois <- nimbleFunction(
     K <- length(x)
     J <- dim(rate)[2]
     n_states <- J+2
-    alpha <- pi
+    alpha <- init
     lambda <- nimNumeric(value = 0.0, length = n_states)
     for (t in 1:K) {
       ### Observation distribution -----------
@@ -207,26 +207,30 @@ dhmm_mark <- nimbleFunction(
     returnType(double())
     J <- length(knots)
     n_states <- J + 2
-    pi <- init # State probabilities at time t=1
     logL <- 0
     len <- length(x)
-    alpha <- pi
+    alpha <- init
     dm <- nimNumeric(value = 1.0, length = n_states)
-    pt <- nimNumeric(value = 0.0, length = n_states)
+    Pdiag <- nimNumeric(value = 0.0, length = n_states)
     for (t in 1:len) {
-      ### Observation distribution -----------
-      if(!is.na(mark[t])){
-        dm[2:(J+1)] <- dnorm(mark[t], mean=knots, sd=sigma_knot, log=FALSE)
-      } else {
-        dm[2:(J+1)] <- 1.0
+      for(k in 1:n_states){
+        if(k==1 | k==n_states){
+          Pdiag[k] <- 1-x[t]
+        } else{
+          if(!is.na(mark[t])){
+            dm[2:(J+1)] <- dnorm(mark[t], mean=knots, sd=sigma_knot, log=FALSE)
+          } else {
+            dm[2:(J+1)] <- 1.0
+          }
+          pt[2:(J+1)] <- prob[t,]
+          Pdiag <- (1-x[t])*(1-pt) + x[t]*pt*dm
+        }
       }
-      pt[2:(J+1)] <- prob[t,]
-      Pdiag <- (1-x[t])*(1-pt) + x[t]*pt*dm
       ### ------------------------------------
-      Zpi <- Pdiag * alpha
-      sumZpi <- sum(Zpi)
-      logL <- logL + log(sumZpi)
-      if (t < len) alpha <- ((Zpi %*% probTrans[,,t]) / sumZpi)[1, ]
+      alphaP <- Pdiag * alpha
+      sum_alphaP <- sum(alphaP)
+      logL <- logL + log(sum_alphaP)
+      if (t < len) alpha <- ((alphaP %*% probTrans[,,t]) / sum_alphaP)[1, ]
     }
     if (log) return(logL)
     return(exp(logL))

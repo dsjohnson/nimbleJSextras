@@ -9,13 +9,13 @@ make_GRBF <- function(x, num_knots){
 }
 
 make_honu_Gamma <- nimbleFunction(
-  run = function(xi_tilde=double(), phi=double(), eta=double(), p=double(), tau=double(1)) {
+  run = function(xi_tilde=double(), phi=double(), p0=double(), p1=double(), tau=double(1)) {
     returnType(double(2))
     m <- length(tau)
     gdim <- 6+2*m
     # submatrices
 
-    psi_null_R <- c(1-eta*p, eta*p, 0, 0)
+    psi_null_R <- c(1-p0, p0, 0, 0)
 
     psi_F_F <- nimMatrix(0,2*m,2*m)
     for(j in 1:(m-1)){
@@ -27,10 +27,10 @@ make_honu_Gamma <- nimbleFunction(
 
     psi_F_R <- nimMatrix(0,2*m, 4)
     for(j in 1:m){
-      psi_F_R[j,1] <- (1-eta*p)*tau[j]
-      psi_F_R[j,2] <- eta*p*tau[j]
-      psi_F_R[m+j,3] <- (1-p)*tau[j]
-      psi_F_R[m+j,4] <- p*tau[j]
+      psi_F_R[j,1] <- (1-p0)*tau[j]
+      psi_F_R[j,2] <- p0*tau[j]
+      psi_F_R[m+j,3] <- (1-p1)*tau[j]
+      psi_F_R[m+j,4] <- p1*tau[j]
     }
 
     psi_R_F <- nimMatrix(0,4,2*m)
@@ -51,11 +51,11 @@ make_honu_Gamma <- nimbleFunction(
   })
 
 make_honu_pi <- nimbleFunction(
-  run = function(xi_tilde=double(), eta=double(), m=double()) {
+  run = function(xi_tilde=double(), p0=double(), m=double()) {
     returnType(double(1))
     pi <- rep(0,6+2*m)
     pi[1] <- 1-xi_tilde
-    pi[2:5] <- xi_tilde*c(1-eta, eta, 0, 0)
+    pi[2:5] <- xi_tilde*c(1-p0, p0, 0, 0)
     return(pi)
   })
 

@@ -1,7 +1,7 @@
 
 predict_abundance <- nimbleFunction(
   run = function(xi=double(2), phi = double(1), tau=double(2), p=double(2),
-                 eta=double(2), Nu = double(1), x = double(2)) {
+                 p0=double(2), Nu = double(1), x = double(2)) {
     iter <- dim(xi)[1]
     K <- dim(xi)[2]
     n <- dim(x)[1]
@@ -27,11 +27,11 @@ predict_abundance <- nimbleFunction(
 
 
       for(t in 1:(K-1)){
-        Gamma[,,t] <- make_honu_Gamma(xi_tilde[t+1], phi[j], p[j,t+1], eta[j,t+1], tau[j,])
+        Gamma[,,t] <- make_honu_Gamma(xi_tilde[t+1], phi[j], p0[j,t+1], p[j,t+1], tau[j,])
         Pmats[,,t] <- make_honu_P(m)
       }
       Pmats[,,K] <- make_honu_P(m)
-      pi <- make_honu_pi(xi_tilde[1], eta[j,1], m)
+      pi <- make_honu_pi(xi_tilde[1], p[j,1], m)
 
       ### Predict abundance for uncaptured id
       Nu_t <- rJSUndet_ms(1, Nu[j], pi, Pmats, Gamma)

@@ -7,36 +7,33 @@ require(nimbleEcology)
 require(nimbleJSextras)
 
 js_code <- nimbleCode({
-
+  
   #' ---------------------------------------------------------------------------
   #' Entry, survival, and reproductive state
   #' ---------------------------------------------------------------------------
-
-  # Entry probability (rho, xi, and xi_tilde)
+  
+  # Entry probability
+  # Matern RBF coefficients
+  sigma_beta_xi ~ dexp(1)
+  for(i in 1:df_xi){beta_xi[i] ~ dnorm(0, sd=1)}
+  # xi
   for(t in 1:K){
-    eps_rho[t] ~ dt(mu=0, sigma=1.52, df=6)
-    logit(rho[t]) <- eps_rho[t]
-    }
-  xi_raw[1] <- rho[1]
-  for(t in 2:K){
-    xi_raw[t] <- prod(1-rho[1:(t-1)]) * rho[t]
+    log(xi_raw[t]) <- sigma_beta_xi*inprod(B[t,1:df_xi], beta_xi[1:df_xi])
   }
-  xi_norm <- sum(xi_raw[1:K])
-  for(t in 1:(K-1)){
-    xi_tilde[t] <- xi_raw[t]/sum(xi_raw[t:K])
-    xi[t] <- xi_raw[t]/xi_norm
-  }
+  xi[1:K] <- xi_raw[1:K]/sum(xi_raw[1:K])
+  # xi_tilde
+  xi_tilde[1] <- xi[1]
+  for(t in 2:(K-1)){ xi_tilde[t] <- xi[t]/sum(xi[t:K]) }
   xi_tilde[K] <- 1
-  xi[K] <- xi_raw[K]/xi_norm
   
   # survival (phi)
-  eps_phi ~ dt(mu=0, sigma=1.52, df=6)
-  logit(phi) <- eps_phi
-
-  # Foraging dwell time (tau)
+  logit_phi ~ dt(mu=0, sigma=1.52, df=6)
+  phi <- expit(logit_phi)
+  
+  # Foraging dwell time (i.e., reproductive return time)
   for(j in 1:m){
-    eps_tau[j] ~ dt(mu=0, sigma=1.52, df=6)
-    logit(tau[j]) <- eps_tau[j]
+    logit_tau[j] ~ dt(mu=0, sigma=1.52, df=6)
+    tau[j] <- expit(logit_tau[j])
   }
   ft_pdf[1] <- tau[1]
   for(j in 2:m){
@@ -45,36 +42,39 @@ js_code <- nimbleCode({
   for(j in 1:(10-m)){
     ft_pdf[j+m] <- prod(1-tau[1:m]) * (1-tau[m])^(j-1) * tau[m]
   }
-
+  
   #' ---------------------------------------------------------------------------
-  #' Detection
+  #' Capture probability
   #' ---------------------------------------------------------------------------
-  p[1] <- 0
-  eps_eta[1] ~ dt(mu=0, sigma=1.52, df=6)
-  logit(eta[1]) <- eps_eta[1]
-  for(t in 2:K){
-    eps_p[t-1] ~ dt(mu=0, sigma=1.52, df=6)
-    p[t] <- surv[t]*expit(eps_p[t-1])
-    eps_eta[t] ~ dt(mu=0, sigma=1.52, df=6)
-    logit(eta[t]) <- eps_eta[t]
+  for(t in 1:2){
+    # Reduction in effort for uncaptured animals set to 1 for first 2 occasions
+    logit_p[t] ~ dt(mu=0, sigma=1.52, df=6)
+    p[t] <- surv[t]*expit(logit_p[t])
+    p0[t] <- p[t]
   }
-
+  for(t in 3:K){
+    logit_p[t] ~ dt(mu=0, sigma=1.52, df=6)
+    p[t] <- surv[t]*expit(logit_p[t])
+    logit_eta[t-2] ~ dt(mu=0, sigma=1.52, df=6)
+    p0[t] <- surv[t]*expit(logit_eta[t-2])*p[t]
+  }
+  
   #' ---------------------------------------------------------------------------
   #' HMM matrices (see helper/*.R for nimble functions to load matrices)
   #' ---------------------------------------------------------------------------
-
+  
   for(t in 1:K){
     Pmats[1:n_states,1:3,t] <- make_honu_P(m)
   }
-
+  
   # pi
-  pi[1:n_states] <- make_honu_pi(xi_tilde[1], eta[1], m)
-
+  pi[1:n_states] <- make_honu_pi(xi_tilde[1], p[1], m)
+  
   # Gamma
   for(t in 1:(K-1)){
-    Gamma[1:n_states, 1:n_states, t] <- make_honu_Gamma(xi_tilde[t+1], phi, eta[t+1], p[t+1], tau[1:m])
+    Gamma[1:n_states, 1:n_states, t] <- make_honu_Gamma(xi_tilde[t+1], phi, p0[t+1], p[t+1], tau[1:m])
   }
-
+  
   #' ---------------------------------------------------------------------------
   #' Unconditional detection probability
   #' ---------------------------------------------------------------------------
@@ -84,7 +84,7 @@ js_code <- nimbleCode({
     probTrans = Gamma[1:n_states, 1:n_states, 1:(K-1)],
     len=K
   )
-
+  
   #' ---------------------------------------------------------------------------
   #' HMM likelihood for observed individuals
   #' ---------------------------------------------------------------------------
@@ -96,17 +96,17 @@ js_code <- nimbleCode({
       pstar=pstar, weight=w[i], len = K
     )
   }
-
+  
   #' ---------------------------------------------------------------------------
-  #' Model for number of detected individuals
+  #' Model for number of total captured individuals
   #' ---------------------------------------------------------------------------
   lambda ~ dgamma(1.0e-6, 1.0e-6)
   n ~ dpois(lambda*pstar)
-
+  
   #' ---------------------------------------------------------------------------
   #' Posterior predicted superpopulationn abundance
   #' ---------------------------------------------------------------------------
   Nu ~ dpois(lambda*(1-pstar))
   N <- n+Nu
-
+  
 })
