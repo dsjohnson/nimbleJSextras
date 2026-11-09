@@ -4,13 +4,13 @@ library(nimbleEcology)
 library(nimbleJSextras)
 library(coda)
 library(here)
-library(modelingMisc) # remotes::install()
 
 # Set working directory.
 
 setwd(here("honu_js"))
 
 source(file.path("R","make_hmm_mats.R"))
+source(file.path("R","matern_rbf.R"))
 
 honu_ch <- read_csv(file.path("raw_data","honu_ch.csv")) %>% as.matrix()
 
@@ -24,9 +24,9 @@ K <- ncol(honu_ch)
 n <- nrow(honu_ch)
 m <- 5 # number of breeding return time parameters
 
-nu <- 1.5
-knots <- modelingMisc::make_padded_knots(1:K, n_interior = 10, nu = nu)$knots
-B <-  modelingMisc::matern_basis(1:K, knots, nu=nu)
+nu <- 2.5
+knots <- make_padded_knots(1:K, n_interior = 10, nu = nu)$knots
+B <-  matern_basis(1:K, knots, nu=nu)
 
 
 source(file.path("R", "honu_model.R"))
@@ -82,6 +82,6 @@ et-st
 # Time difference of 3.467576 hours
 
 samples_list <- as.list(c_js_mcmc$mvSamples)
-save(samples_list, honu_ch, ch_collapsed, surv,
-     file=file.path("processed_data_samples", "honu_mcmc_sample.RData"))
+# save(samples_list, honu_ch, ch_collapsed, surv,
+#      file=file.path("processed_data_samples", "honu_mcmc_sample.RData"))
 
